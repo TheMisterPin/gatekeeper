@@ -22,13 +22,14 @@ interface LoginFormValues {
 const TODAY = "2025-11-25"; // TODO: replace with dynamic date in real implementation
 
 function mapAppointmentToArrivalInfo(appointment: Appointment): ArrivalAppointmentInfo {
+  const scheduledIso = appointment.startTime ?? appointment.expectedAt;
   return {
-    id: appointment.id,
+    id: String(appointment.id),
     visitorName: appointment.visitorName,
-    visitorCompany: appointment.visitorCompany,
+    visitorCompany: appointment.visitorCompany ?? undefined,
     hostName: appointment.hostName,
-    scheduledTime: appointment.expectedAt.slice(11, 16), // naive "HH:MM" from ISO
-    location: appointment.location,
+    scheduledTime: scheduledIso ? scheduledIso.slice(11, 16) : "",
+    location: appointment.location ?? undefined,
   };
 }
 
@@ -73,7 +74,11 @@ const HomePage: React.FC = () => {
 
   // Pre-filter appointments to "today" only
   const todaysAppointments: Appointment[] = useMemo(
-    () => mockAppointments.filter((a) => a.date === TODAY),
+    () =>
+      mockAppointments.filter((a) => {
+        const dateFromStart = a.startTime?.slice(0, 10);
+        return (a.date ?? dateFromStart) === TODAY;
+      }),
     []
   );
 
@@ -89,23 +94,24 @@ const HomePage: React.FC = () => {
     }
 
     if (selectedEmployeeId) {
-      result = result.filter((a) => a.hostId === selectedEmployeeId);
+      result = result.filter((a) => String(a.hostId) === selectedEmployeeId);
     }
 
-    // sort by hostName, then expectedAt
+    // sort by hostName, then startTime
     return [...result].sort((a, b) => {
       if (a.hostName < b.hostName) return -1;
       if (a.hostName > b.hostName) return 1;
-      // naive comparison of ISO-ish strings
-      if (a.expectedAt < b.expectedAt) return -1;
-      if (a.expectedAt > b.expectedAt) return 1;
+      const timeA = a.startTime ?? a.expectedAt;
+      const timeB = b.startTime ?? b.expectedAt;
+      if ((timeA ?? "") < (timeB ?? "")) return -1;
+      if ((timeA ?? "") > (timeB ?? "")) return 1;
       return 0;
     });
   }, [todaysAppointments, searchTerm, selectedEmployeeId]);
 
   const selectedAppointment: Appointment | null =
     selectedAppointmentId != null
-      ? todaysAppointments.find((a) => a.id === selectedAppointmentId) ?? null
+      ? todaysAppointments.find((a) => String(a.id) === selectedAppointmentId) ?? null
       : null;
 
   const arrivalAppointmentInfo: ArrivalAppointmentInfo | null =
@@ -200,11 +206,11 @@ const HomePage: React.FC = () => {
     try {
       await downloadBadgeImage({
         visitorName: selectedAppointment.visitorName,
-        visitorCompany: selectedAppointment.visitorCompany,
+        visitorCompany: selectedAppointment.visitorCompany ?? undefined,
         hostName: selectedAppointment.hostName,
         dateLabel: todayLabel,
         photoUrl: capturedImageUrl,
-      });
+      })
     } catch (err) {
       console.error("Badge download failed", err);
       window.alert("Impossibile generare il badge.");

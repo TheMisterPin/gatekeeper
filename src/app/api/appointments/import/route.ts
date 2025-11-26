@@ -20,7 +20,7 @@ interface AppointmentRecord {
   hostName: string;
   visitorName: string;
   visitorCompany?: string | null;
-  knownSuspectId?: string | null;
+  visitorId?: string | null;
   purpose?: string | null;
   location?: string | null;
   status: AppointmentStatus;
@@ -135,10 +135,10 @@ export async function POST(req: NextRequest) {
       hostName,
       visitorName,
       visitorCompany: visitorCompany || null,
-      knownSuspectId: null,
+      visitorId: null,
       purpose: purpose || null,
       location: location || null,
-      status: "scheduled",
+      status: "SCHEDULED",
     };
 
     db.lastNumericId = nextNumericId;

@@ -15,20 +15,20 @@ function formatTime(timeString: string): string {
 
 // Status labels in Italian
 const statusLabels: Record<AppointmentStatus, string> = {
-  scheduled: "Programmato",
-  checkedIn: "In corso",
-  completed: "Completato",
-  cancelled: "Annullato",
-  noShow: "No show",
+  SCHEDULED: "Programmato",
+  CHECKED_IN: "In corso",
+  COMPLETED: "Completato",
+  CANCELLED: "Annullato",
+  NO_SHOW: "No show"
 }
 
 // Status colors
 const statusColors: Record<AppointmentStatus, string> = {
-  scheduled: "bg-blue-100 text-blue-700",
-  checkedIn: "bg-green-100 text-green-700",
-  completed: "bg-gray-100 text-gray-700",
-  cancelled: "bg-red-100 text-red-700",
-  noShow: "bg-orange-100 text-orange-700",
+  SCHEDULED: "bg-blue-100 text-blue-700",
+  CHECKED_IN: "bg-green-100 text-green-700",
+  COMPLETED: "bg-gray-100 text-gray-700",
+  CANCELLED: "bg-red-100 text-red-700",
+  NO_SHOW: "bg-orange-100 text-orange-700",
 }
 
 export default function AppointmentsMainView({
@@ -43,15 +43,15 @@ export default function AppointmentsMainView({
   // Group appointments by hostId
   const appointmentsByHost = appointments.reduce(
     (acc, appointment) => {
-      const hostId = appointment.hostId
-      if (!acc[hostId]) {
-        acc[hostId] = {
-          hostId,
+      const hostKey = String(appointment.hostId)
+      if (!acc[hostKey]) {
+        acc[hostKey] = {
+          hostId: hostKey,
           hostName: appointment.hostName,
           appointments: [],
         }
       }
-      acc[hostId].appointments.push(appointment)
+      acc[hostKey].appointments.push(appointment)
       return acc
     },
     {} as Record<string, { hostId: string; hostName: string; appointments: Appointment[] }>,
@@ -60,7 +60,9 @@ export default function AppointmentsMainView({
   // Sort appointments within each host group by expectedAt
   Object.values(appointmentsByHost).forEach((group) => {
     group.appointments.sort((a, b) => {
-      return new Date(a.expectedAt).getTime() - new Date(b.expectedAt).getTime()
+      const timeA = new Date((a.startTime ?? a.expectedAt) ?? 0).getTime()
+      const timeB = new Date((b.startTime ?? b.expectedAt) ?? 0).getTime()
+      return timeA - timeB
     })
   })
 
@@ -82,7 +84,7 @@ export default function AppointmentsMainView({
       {/* Toolbar */}
       <div className="flex items-center gap-4 flex-wrap">
         {/* Search input */}
-        <div className="flex-1 min-w-[240px]">
+        <div className="flex-1 min-w-60">
           <input
             type="text"
             placeholder="Cerca per nome visitatore..."
@@ -150,14 +152,14 @@ export default function AppointmentsMainView({
                   {group.appointments.map((appointment) => (
                     <button
                       key={appointment.id}
-                      onClick={() => onAppointmentClick?.(appointment.id)}
+                      onClick={() => onAppointmentClick?.(String(appointment.id))}
                       className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all text-left w-full"
                     >
                       <div className="flex items-start gap-4">
                         {/* Time */}
-                        <div className="flex-shrink-0 text-center">
+                        <div className="shrink-0 text-center">
                           <div className="text-2xl font-semibold text-gray-900">
-                            {formatTime(appointment.expectedAt)}
+                            {formatTime(appointment.startTime ?? appointment.expectedAt)}
                           </div>
                         </div>
 
@@ -173,7 +175,7 @@ export default function AppointmentsMainView({
 
                             {/* Status pill */}
                             <span
-                              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status]}`}
+                              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status]}`}
                             >
                               {statusLabels[appointment.status]}
                             </span>

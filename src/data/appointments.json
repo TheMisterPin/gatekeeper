@@ -3,6 +3,8 @@
   "appointments": [
     {
       "id": "A001",
+      "startTime": "2025-11-25T08:30:00",
+      "endTime": "2025-11-25T09:00:00",
       "date": "2025-11-25",
       "expectedAt": "2025-11-25T08:30:00",
       "expectedEnd": "2025-11-25T09:00:00",
@@ -10,13 +12,15 @@
       "hostName": "Marco Bianchi",
       "visitorName": "John Smith",
       "visitorCompany": "DHL Express",
-      "knownSuspectId": "V001",
+      "visitorId": "V001",
       "purpose": "Ritiro documenti e verifica area carico",
       "location": "Stabilimento A - Ingresso 1",
       "status": "scheduled"
     },
     {
       "id": "A002",
+      "startTime": "2025-11-25T09:15:00",
+      "endTime": "2025-11-25T10:00:00",
       "date": "2025-11-25",
       "expectedAt": "2025-11-25T09:15:00",
       "expectedEnd": "2025-11-25T10:00:00",
@@ -24,13 +28,15 @@
       "hostName": "Laura Rossi",
       "visitorName": "Sarah Johnson",
       "visitorCompany": "KUKA Robotics",
-      "knownSuspectId": "V003",
+      "visitorId": "V003",
       "purpose": "Audit qualit\u00e0 linea robotizzata",
       "location": "Stabilimento A - Sala Riunioni Qualit\u00e0",
       "status": "scheduled"
     },
     {
       "id": "A003",
+      "startTime": "2025-11-25T10:00:00",
+      "endTime": "2025-11-25T11:30:00",
       "date": "2025-11-25",
       "expectedAt": "2025-11-25T10:00:00",
       "expectedEnd": "2025-11-25T11:30:00",
@@ -38,13 +44,15 @@
       "hostName": "Marco Bianchi",
       "visitorName": "Carlos Lopez",
       "visitorCompany": "Siemens",
-      "knownSuspectId": "V002",
+      "visitorId": "V002",
       "purpose": "Manutenzione straordinaria quadro elettrico",
       "location": "Stabilimento A - Reparto Manutenzione",
       "status": "scheduled"
     },
     {
       "id": "A004",
+      "startTime": "2025-11-25T11:00:00",
+      "endTime": "2025-11-25T11:30:00",
       "date": "2025-11-25",
       "expectedAt": "2025-11-25T11:00:00",
       "expectedEnd": "2025-11-25T11:30:00",
@@ -52,13 +60,15 @@
       "hostName": "Giulia Verdi",
       "visitorName": "Anna M\u00fcller",
       "visitorCompany": "Bosch",
-      "knownSuspectId": "V005",
+      "visitorId": "V005",
       "purpose": "Presentazione nuovi componenti",
       "location": "Stabilimento B - Ufficio Produzione",
       "status": "scheduled"
     },
     {
       "id": "A005",
+      "startTime": "2025-11-25T14:00:00",
+      "endTime": "2025-11-25T15:00:00",
       "date": "2025-11-25",
       "expectedAt": "2025-11-25T14:00:00",
       "expectedEnd": "2025-11-25T15:00:00",
@@ -66,13 +76,15 @@
       "hostName": "Andrea Neri",
       "visitorName": "Paolo Conti",
       "visitorCompany": "Vigili del Fuoco",
-      "knownSuspectId": "V004",
+      "visitorId": "V004",
       "purpose": "Sopralluogo sicurezza uscite di emergenza",
       "location": "Magazzino Centrale",
       "status": "scheduled"
     },
     {
       "id": "A006",
+      "startTime": "2025-11-25T15:30:00",
+      "endTime": "2025-11-25T16:00:00",
       "date": "2025-11-25",
       "expectedAt": "2025-11-25T15:30:00",
       "expectedEnd": "2025-11-25T16:00:00",
@@ -80,7 +92,7 @@
       "hostName": "Laura Rossi",
       "visitorName": "Luca Ferri",
       "visitorCompany": "ISO Consulting",
-      "knownSuspectId": null,
+      "visitorId": null,
       "purpose": "Aggiornamento certificazione ISO 9001",
       "location": "Stabilimento A - Sala Riunioni 2",
       "status": "scheduled"

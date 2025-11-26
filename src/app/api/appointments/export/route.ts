@@ -20,7 +20,7 @@ interface AppointmentRecord {
   hostName: string;
   visitorName: string;
   visitorCompany?: string | null;
-  knownSuspectId?: string | null;
+  visitorId?: string | null;
   purpose?: string | null;
   location?: string | null;
   status: AppointmentStatus;
