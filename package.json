@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "pnpm exec tsx --test \"tests/**/*.test.tsx\""
   },
   "dependencies": {
     "@prisma/adapter-mssql": "^7.0.1",
