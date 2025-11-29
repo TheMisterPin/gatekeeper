@@ -1,44 +1,12 @@
 "use client"
 
-import { prisma } from "@/lib/prisma"
 import { NavItem } from "@/types/components/nav-item"
 import { LoginFormValues } from "@/types/login/login-form-values"
-import { getRandomDate } from "@/utils/get-random-date"
-import type React from "react"
-
+import  React from "react"
 import { useState } from "react"
 
 
-const resources = await prisma.ePS_Resource.findMany()
-const visitor = await prisma.rEM_Contact.findMany({where: {TypeID: 3}})
-const getRandomResource = () => {
-    const randomIndex = Math.floor(Math.random() * resources.length);
-    return resources[randomIndex];
-}
-const getRandomVisitor = () => {
-    const randomIndex = Math.floor(Math.random() * visitor.length);
-    return visitor[randomIndex];
-}
-const start = new Date("2025-11-26T00:00:00");
-const end   = new Date("2025-11-30T23:59:59");
 
-const createNewAppointment = () => {
-    const randomDate = getRandomDate(start, end);
-    const resource = getRandomResource();
-    const visitor = getRandomVisitor();
-    const newAppointment = {
-        Location: resource.CustString2 ?? "Ufficio Centrale",
-        VisitorName: visitor.Name ?? "Visitatore Sconosciuto",
-        HostId : resource.ResourceID,
-        VisitorId: visitor.ID,
-        StartTime: randomDate
-}    
-return prisma.vIS_VisitAppointment.create({ data: newAppointment });}
-async function handleClick(){
-  for (let i = 0; i < 20; i++) {
-    await createNewAppointment();
-}
-}
 export interface AppShellProps {
   logo?: React.ReactNode
   isAuthenticated: boolean
@@ -62,14 +30,13 @@ export default function AppShell({
   loginSubmitting = false,
   children,
 }: AppShellProps) {
-  const [serverIp, setServerIp] = useState("")
+  const [password, setPassword] = useState("")
   const [resourceName, setResourceName] = useState("")
-  const [deviceName, setDeviceName] = useState("")
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (onLoginSubmit) {
-      onLoginSubmit({ serverIp, resourceName, deviceName })
+      onLoginSubmit({ password, resourceName })
     }
   }
 
@@ -80,20 +47,7 @@ export default function AppShell({
         <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-6">Accesso dispositivo</h1>
           <form onSubmit={handleLoginSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="serverIp" className="block text-sm font-medium text-gray-700 mb-1">
-                Server IP address
-              </label>
-              <input
-                type="text"
-                id="serverIp"
-                value={serverIp}
-                onChange={(e) => setServerIp(e.target.value)}
-                disabled={loginSubmitting}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
-            </div>
+   
             <div>
               <label htmlFor="resourceName" className="block text-sm font-medium text-gray-700 mb-1">
                 Resource name
@@ -108,15 +62,15 @@ export default function AppShell({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
-            <div>
-              <label htmlFor="deviceName" className="block text-sm font-medium text-gray-700 mb-1">
-                Device name
+         <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password
               </label>
               <input
-                type="text"
-                id="deviceName"
-                value={deviceName}
-                onChange={(e) => setDeviceName(e.target.value)}
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={loginSubmitting}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -150,7 +104,7 @@ export default function AppShell({
         style={{ height: `${headerHeight}px` }}
       >
         <div className="flex items-center">{logo}</div>
-<button onClick={handleClick}>
+<button onClick={onLogout}>
           Logout
         </button>
       </header>

@@ -4,23 +4,18 @@
 import React, { useMemo, useState } from "react";
 import AppShell from "@/components/app-shell";
 import AppointmentsMainView from "../components/appointments-main-view";
-
+import axios from "axios"
 import ArrivalCheckInModal from "@/components/arrival-check-in-modal";
 
 import { mockAppointments, mockEmployees } from "../lib/mockData";
 import { useCamera } from "../hooks/useCamera";
 import { downloadBadgeImage } from "../utils/badge";
 import { Appointment, ArrivalAppointmentInfo } from "@/types";
+import { useErrorDialog } from "@/hooks/ErrorDialogContext";
+import { LoginFormValues } from '../types/login/login-form-values';
 
-// Types copied from AppShell prompt for reference
-interface LoginFormValues {
-  serverIp: string;
-  resourceName: string;
-  deviceName: string;
-}
 
-const TODAY = "2025-11-25"; // TODO: replace with dynamic date in real implementation
-
+const TODAY = new Date().toISOString().slice(0, 10); 
 function mapAppointmentToArrivalInfo(appointment: Appointment): ArrivalAppointmentInfo {
   const scheduledIso = appointment.startTime ?? appointment.expectedAt;
   return {
@@ -34,17 +29,16 @@ function mapAppointmentToArrivalInfo(appointment: Appointment): ArrivalAppointme
 }
 
 function formatTodayLabel(date: string): string {
-  // very dumb formatter: "2025-11-25" -> "25/11/2025"
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
 }
 
 const HomePage: React.FC = () => {
+  const { reportError } = useErrorDialog();
   // Auth / device state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUserName, setCurrentUserName] = useState<string | undefined>();
-  const [serverIp, setServerIp] = useState<string | null>(null);
-  const [deviceName, setDeviceName] = useState<string | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
   const [loginSubmitting, setLoginSubmitting] = useState(false);
 
   // Filters
@@ -118,21 +112,49 @@ const HomePage: React.FC = () => {
     selectedAppointment ? mapAppointmentToArrivalInfo(selectedAppointment) : null;
 
   async function handleLoginSubmit(values: LoginFormValues) {
-    setLoginSubmitting(true);
-    try {
-      // Mock the fetch call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
+    const username = values.resourceName?.trim();
+    const passwordValue = values.password;
 
-      // Mock successful response
-      setIsAuthenticated(true);
-      setCurrentUserName(values.resourceName);
-      setServerIp(values.serverIp);
-      setDeviceName(values.deviceName);
-    } catch (err) {
-      console.error("Login failed", err);
-      window.alert(
-        "Impossibile connettersi al server specificato. Verifica IP e connettività."
+    if (!username || !passwordValue) {
+      reportError(new Error("Credenziali mancanti"), {
+        source: "login",
+        title: "Login fallito",
+        messageOverride: "Inserisci nome risorsa e password",
+      });
+      return;
+    }
+
+    setLoginSubmitting(true);
+
+    try {
+      const response = await axios.post(
+        "/api/auth/login",
+        { username, password: passwordValue },
+        { validateStatus: () => true }
       );
+
+      const responseMessage =
+        typeof response.data === "string" && response.data.trim().length > 0
+          ? response.data
+          : "Login fallito";
+
+      if (response.status === 200) {
+        setIsAuthenticated(true);
+        setCurrentUserName(username);
+        setPassword(passwordValue);
+        return;
+      }
+
+      reportError(new Error(responseMessage), {
+        source: "login",
+        title: "Login fallito",
+        messageOverride: responseMessage,
+      });
+    } catch (err) {
+      reportError(err, {
+        source: "login",
+        title: "Login fallito",
+      });
     } finally {
       setLoginSubmitting(false);
     }
@@ -141,8 +163,7 @@ const HomePage: React.FC = () => {
   function handleLogout() {
     setIsAuthenticated(false);
     setCurrentUserName(undefined);
-    setServerIp(null);
-    setDeviceName(null);
+    setPassword(null);
     setSelectedAppointmentId(null);
     setMainConsentChecked(false);
     setBiometricConsentChecked(false);
@@ -179,9 +200,7 @@ const HomePage: React.FC = () => {
     setCheckInLoading(true);
     try {
       console.log("Check-in appointment", {
-        appointmentId: selectedAppointment.id,
-        serverIp,
-        deviceName,
+        appointmentId: selectedAppointment.id
       });
       // naive mock delay to simulate network call
       await new Promise((resolve) => setTimeout(resolve, 500));

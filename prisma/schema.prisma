@@ -8166,7 +8166,7 @@ model VIS_VisitAppointment {
   VisitorId      String?        @db.NVarChar(50)
   VisitorName    String         @db.NVarChar(150)
   VisitorCompany String?        @db.NVarChar(150)
-  HostId         String        @db.NVarChar(50)
+  HostId         String         @db.NVarChar(50)
   DeviceId       Int?
   CreatedAt      DateTime       @default(dbgenerated("sysutcdatetime()"), map: "DF_VIS_VisitAppointment_CreatedAt")
   UpdatedAt      DateTime       @default(dbgenerated("sysutcdatetime()"), map: "DF_VIS_VisitAppointment_UpdatedAt")
@@ -8192,7 +8192,7 @@ model VIS_VisitLog {
   Id                   Int                   @id(map: "PK_VIS_VisitLog") @default(autoincrement())
   AppointmentId        Int?
   VisitorId            String?               @db.NVarChar(50)
-  HostId               String? @db.NVarChar(50)
+  HostId               String?               @db.NVarChar(50)
   DeviceId             Int?
   Location             String?               @db.NVarChar(200)
   CheckInTime          DateTime

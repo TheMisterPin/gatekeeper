@@ -103,10 +103,11 @@ export const ErrorDialogProvider: React.FC<
       setIsOpen(true);
       setHistory((prev) => [appError, ...prev].slice(0, 50)); // keep last 50 errors
 
-      if (process.env.NODE_ENV !== "production") {
-        // eslint-disable-next-line no-console
-        console.error("[AppError]", appError);
-      }
+      // if (process.env.NODE_ENV !== "production") {
+      //   // eslint-disable-next-line no-console
+      //   console.error("[AppError]", appError);
+      // }
+      console.error("[AppError]", appError);
     },
     []
   );

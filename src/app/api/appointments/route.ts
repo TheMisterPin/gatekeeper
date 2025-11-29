@@ -1,34 +1,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { readJsonFile, writeJsonFile } from "@/lib/jsonDb";
+import { Appointment, AppointmentStatus } from "@/types";
 
 export const runtime = "nodejs";
 
-export type AppointmentStatus =
-  | "scheduled"
-  | "checkedIn"
-  | "completed"
-  | "cancelled"
-  | "noShow";
 
-export interface AppointmentRecord {
-  id: string; // e.g. "A001"
-  date: string; // "YYYY-MM-DD"
-  expectedAt: string; // ISO string
-  expectedEnd?: string | null;
-  hostId: string;
-  hostName: string;
-  visitorName: string;
-  visitorCompany?: string | null;
-  visitorId?: string | null;
-  purpose?: string | null;
-  location?: string | null;
-  status: AppointmentStatus;
-}
 
 interface AppointmentsDb {
   lastNumericId: number;
-  appointments: AppointmentRecord[];
+  appointments: Appointment[];
 }
 
 function ensureAppointmentsDb(db: any): AppointmentsDb {
@@ -117,10 +98,11 @@ export async function POST(req: NextRequest) {
   const nextNumericId = db.lastNumericId + 1;
   const newId = `A${String(nextNumericId).padStart(3, "0")}`;
 
-  const record: AppointmentRecord = {
+  const record: Appointment = {
     id: newId,
     date,
     expectedAt,
+    startTime: expectedAt, 
     expectedEnd: body?.expectedEnd ?? null,
     hostId,
     hostName,

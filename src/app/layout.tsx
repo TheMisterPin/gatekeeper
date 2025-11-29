@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import './globals.css'
+import  "./globals.css"
 import { ErrorDialogProvider } from '@/hooks/ErrorDialogContext';
+import ErrorDialogPortal from '@/components/ErrorDialogPortal';
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <ErrorDialogProvider>
           {children}
+          <ErrorDialogPortal />
           <Analytics />
         </ErrorDialogProvider>
       </body>
