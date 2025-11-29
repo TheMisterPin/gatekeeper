@@ -9,6 +9,7 @@ import ArrivalCheckInModal from "@/components/arrival-check-in-modal";
 
 import { mockAppointments, mockEmployees } from "../lib/mockData";
 import { useCamera } from "../hooks/useCamera";
+import { useLoginForm } from "../hooks/useLoginForm";
 import { downloadBadgeImage } from "../utils/badge";
 import { Appointment, ArrivalAppointmentInfo } from "@/types";
 import { useErrorDialog } from "@/hooks/ErrorDialogContext";
@@ -36,10 +37,15 @@ function formatTodayLabel(date: string): string {
 const HomePage: React.FC = () => {
   const { reportError } = useErrorDialog();
   // Auth / device state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUserName, setCurrentUserName] = useState<string | undefined>();
-  const [password, setPassword] = useState<string | null>(null);
-  const [loginSubmitting, setLoginSubmitting] = useState(false);
+  const {
+    isAuthenticated,
+    currentUserName,
+    serverIp,
+    deviceName,
+    loginSubmitting,
+    handleLoginSubmit,
+    resetLoginState,
+  } = useLoginForm();
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -111,59 +117,8 @@ const HomePage: React.FC = () => {
   const arrivalAppointmentInfo: ArrivalAppointmentInfo | null =
     selectedAppointment ? mapAppointmentToArrivalInfo(selectedAppointment) : null;
 
-  async function handleLoginSubmit(values: LoginFormValues) {
-    const username = values.resourceName?.trim();
-    const passwordValue = values.password;
-
-    if (!username || !passwordValue) {
-      reportError(new Error("Credenziali mancanti"), {
-        source: "login",
-        title: "Login fallito",
-        messageOverride: "Inserisci nome risorsa e password",
-      });
-      return;
-    }
-
-    setLoginSubmitting(true);
-
-    try {
-      const response = await axios.post(
-        "/api/auth/login",
-        { username, password: passwordValue },
-        { validateStatus: () => true }
-      );
-
-      const responseMessage =
-        typeof response.data === "string" && response.data.trim().length > 0
-          ? response.data
-          : "Login fallito";
-
-      if (response.status === 200) {
-        setIsAuthenticated(true);
-        setCurrentUserName(username);
-        setPassword(passwordValue);
-        return;
-      }
-
-      reportError(new Error(responseMessage), {
-        source: "login",
-        title: "Login fallito",
-        messageOverride: responseMessage,
-      });
-    } catch (err) {
-      reportError(err, {
-        source: "login",
-        title: "Login fallito",
-      });
-    } finally {
-      setLoginSubmitting(false);
-    }
-  }
-
   function handleLogout() {
-    setIsAuthenticated(false);
-    setCurrentUserName(undefined);
-    setPassword(null);
+    resetLoginState();
     setSelectedAppointmentId(null);
     setMainConsentChecked(false);
     setBiometricConsentChecked(false);
