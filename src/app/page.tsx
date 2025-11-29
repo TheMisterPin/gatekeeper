@@ -9,15 +9,9 @@ import ArrivalCheckInModal from "@/components/arrival-check-in-modal";
 
 import { mockAppointments, mockEmployees } from "../lib/mockData";
 import { useCamera } from "../hooks/useCamera";
+import { useLoginForm } from "../hooks/useLoginForm";
 import { downloadBadgeImage } from "../utils/badge";
 import { Appointment, ArrivalAppointmentInfo } from "@/types";
-
-// Types copied from AppShell prompt for reference
-interface LoginFormValues {
-  serverIp: string;
-  resourceName: string;
-  deviceName: string;
-}
 
 const TODAY = "2025-11-25"; // TODO: replace with dynamic date in real implementation
 
@@ -41,11 +35,15 @@ function formatTodayLabel(date: string): string {
 
 const HomePage: React.FC = () => {
   // Auth / device state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUserName, setCurrentUserName] = useState<string | undefined>();
-  const [serverIp, setServerIp] = useState<string | null>(null);
-  const [deviceName, setDeviceName] = useState<string | null>(null);
-  const [loginSubmitting, setLoginSubmitting] = useState(false);
+  const {
+    isAuthenticated,
+    currentUserName,
+    serverIp,
+    deviceName,
+    loginSubmitting,
+    handleLoginSubmit,
+    resetLoginState,
+  } = useLoginForm();
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -117,32 +115,8 @@ const HomePage: React.FC = () => {
   const arrivalAppointmentInfo: ArrivalAppointmentInfo | null =
     selectedAppointment ? mapAppointmentToArrivalInfo(selectedAppointment) : null;
 
-  async function handleLoginSubmit(values: LoginFormValues) {
-    setLoginSubmitting(true);
-    try {
-      // Mock the fetch call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-
-      // Mock successful response
-      setIsAuthenticated(true);
-      setCurrentUserName(values.resourceName);
-      setServerIp(values.serverIp);
-      setDeviceName(values.deviceName);
-    } catch (err) {
-      console.error("Login failed", err);
-      window.alert(
-        "Impossibile connettersi al server specificato. Verifica IP e connettività."
-      );
-    } finally {
-      setLoginSubmitting(false);
-    }
-  }
-
   function handleLogout() {
-    setIsAuthenticated(false);
-    setCurrentUserName(undefined);
-    setServerIp(null);
-    setDeviceName(null);
+    resetLoginState();
     setSelectedAppointmentId(null);
     setMainConsentChecked(false);
     setBiometricConsentChecked(false);
