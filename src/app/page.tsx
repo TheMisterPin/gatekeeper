@@ -4,7 +4,7 @@
 import React, { useMemo, useState } from "react";
 import AppShell from "@/components/app-shell";
 import AppointmentsMainView from "../components/appointments-main-view";
-
+import axios from "axios"
 import ArrivalCheckInModal from "@/components/arrival-check-in-modal";
 
 import { mockAppointments, mockEmployees } from "../lib/mockData";
@@ -12,9 +12,11 @@ import { useCamera } from "../hooks/useCamera";
 import { useLoginForm } from "../hooks/useLoginForm";
 import { downloadBadgeImage } from "../utils/badge";
 import { Appointment, ArrivalAppointmentInfo } from "@/types";
+import { useErrorDialog } from "@/hooks/ErrorDialogContext";
+import { LoginFormValues } from '../types/login/login-form-values';
 
-const TODAY = "2025-11-25"; // TODO: replace with dynamic date in real implementation
 
+const TODAY = new Date().toISOString().slice(0, 10); 
 function mapAppointmentToArrivalInfo(appointment: Appointment): ArrivalAppointmentInfo {
   const scheduledIso = appointment.startTime ?? appointment.expectedAt;
   return {
@@ -28,12 +30,12 @@ function mapAppointmentToArrivalInfo(appointment: Appointment): ArrivalAppointme
 }
 
 function formatTodayLabel(date: string): string {
-  // very dumb formatter: "2025-11-25" -> "25/11/2025"
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
 }
 
 const HomePage: React.FC = () => {
+  const { reportError } = useErrorDialog();
   // Auth / device state
   const {
     isAuthenticated,
@@ -153,9 +155,7 @@ const HomePage: React.FC = () => {
     setCheckInLoading(true);
     try {
       console.log("Check-in appointment", {
-        appointmentId: selectedAppointment.id,
-        serverIp,
-        deviceName,
+        appointmentId: selectedAppointment.id
       });
       // naive mock delay to simulate network call
       await new Promise((resolve) => setTimeout(resolve, 500));

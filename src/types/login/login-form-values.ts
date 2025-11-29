@@ -1,5 +1,5 @@
 export interface LoginFormValues {
-  serverIp: string
+  password: string
   resourceName: string
-  deviceName: string
+  deviceName?: string
 }
