@@ -5,4 +5,5 @@ export interface NavItem {
   label: string
   icon?: React.ReactNode
   isActive?: boolean
+  onClick?: () => void
 }
