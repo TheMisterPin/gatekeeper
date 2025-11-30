@@ -1,49 +1,55 @@
-import { useCallback, useState } from "react"
+"use client"
 
+import { useCallback } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
+
+import { useAuth } from "@/hooks/auth-context"
 import { LoginFormValues } from "@/types/login/login-form-values"
 
+const loginFormSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(1, "Inserisci il nome utente"),
+  password: z.string().min(1, "Inserisci la password"),
+})
+
 export function useLoginForm() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [currentUserName, setCurrentUserName] = useState<string | undefined>()
-  const [serverIp, setServerIp] = useState<string | null>(null)
-  const [deviceName, setDeviceName] = useState<string | null>(null)
-  const [loginSubmitting, setLoginSubmitting] = useState(false)
+  const { login, loginLoading, loginError, isAuthenticated, currentUserName } =
+    useAuth()
 
-  const handleLoginSubmit = useCallback(async (values: LoginFormValues) => {
-    setLoginSubmitting(true)
-    try {
-      // Mock the fetch call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate network delay
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+    mode: "onSubmit",
+  })
 
-      // Mock successful response
-      setIsAuthenticated(true)
-      setCurrentUserName(values.resourceName)
-      setServerIp(values.serverIp)
-      setDeviceName(values.deviceName)
-    } catch (err) {
-      console.error("Login failed", err)
-      window.alert(
-        "Impossibile connettersi al server specificato. Verifica IP e connettività."
-      )
-    } finally {
-      setLoginSubmitting(false)
-    }
-  }, [])
+  const handleSubmit = useCallback(
+    form.handleSubmit(async (values) => {
+      const result = await login(values)
 
-  const resetLoginState = useCallback(() => {
-    setIsAuthenticated(false)
-    setCurrentUserName(undefined)
-    setServerIp(null)
-    setDeviceName(null)
-  }, [])
+      if (result.error) {
+        toast.error(result.message)
+        return
+      }
+
+      toast.success(result.message ?? "Login eseguito")
+    }),
+    [form, login]
+  )
 
   return {
+    form,
+    handleSubmit,
+    isSubmitting: loginLoading,
+    submitError: loginError,
     isAuthenticated,
     currentUserName,
-    serverIp,
-    deviceName,
-    loginSubmitting,
-    handleLoginSubmit,
-    resetLoginState,
   }
 }

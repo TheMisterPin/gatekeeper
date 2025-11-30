@@ -1,6 +1,7 @@
-import { ResponseError, ResponseStatus } from ".";
+import { ResponseError, ResponseStatus } from "."
 
 export interface LoginResponse {
-  message : string,
-  status? : ResponseStatus
-error? : ResponseError}
+  message: string
+  status?: ResponseStatus
+  error?: ResponseError
+}

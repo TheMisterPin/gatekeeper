@@ -4,16 +4,15 @@
 import React, { useMemo, useState } from "react";
 import AppShell from "@/components/app-shell";
 import AppointmentsMainView from "../components/appointments-main-view";
-import axios from "axios"
 import ArrivalCheckInModal from "@/components/arrival-check-in-modal";
 
-import { mockAppointments, mockEmployees } from "../lib/mockData";
+import { LoginPage } from "@/components/pages/login-page-component";
+import { useAuth } from "@/hooks/auth-context";
+import { useErrorDialog } from "@/hooks/ErrorDialogContext";
 import { useCamera } from "../hooks/useCamera";
-import { useLoginForm } from "../hooks/useLoginForm";
+import { mockAppointments, mockEmployees } from "../lib/mockData";
 import { downloadBadgeImage } from "../utils/badge";
 import { Appointment, ArrivalAppointmentInfo } from "@/types";
-import { useErrorDialog } from "@/hooks/ErrorDialogContext";
-import { LoginFormValues } from '../types/login/login-form-values';
 
 
 const TODAY = new Date().toISOString().slice(0, 10); 
@@ -36,16 +35,7 @@ function formatTodayLabel(date: string): string {
 
 const HomePage: React.FC = () => {
   const { reportError } = useErrorDialog();
-  // Auth / device state
-  const {
-    isAuthenticated,
-    currentUserName,
-    serverIp,
-    deviceName,
-    loginSubmitting,
-    handleLoginSubmit,
-    resetLoginState,
-  } = useLoginForm();
+  const { isAuthenticated, currentUserName, logout } = useAuth();
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -118,7 +108,7 @@ const HomePage: React.FC = () => {
     selectedAppointment ? mapAppointmentToArrivalInfo(selectedAppointment) : null;
 
   function handleLogout() {
-    resetLoginState();
+    logout();
     setSelectedAppointmentId(null);
     setMainConsentChecked(false);
     setBiometricConsentChecked(false);
@@ -191,10 +181,13 @@ const HomePage: React.FC = () => {
     }
   }
 
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
   return (
     <AppShell
       logo={<span className="font-bold tracking-tight">FactoryGate</span>}
-      isAuthenticated={isAuthenticated}
       currentUserName={currentUserName}
       onLogout={handleLogout}
       navItems={[
@@ -204,8 +197,6 @@ const HomePage: React.FC = () => {
       onNavItemClick={(id) => {
         console.log("Nav click", id);
       }}
-      onLoginSubmit={handleLoginSubmit}
-      loginSubmitting={loginSubmitting}
     >
       {/* Main content when authenticated: appointments page */}
       <div className="flex flex-col h-full">

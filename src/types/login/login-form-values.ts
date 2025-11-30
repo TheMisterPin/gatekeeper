@@ -1,5 +1,4 @@
 export interface LoginFormValues {
+  username: string
   password: string
-  resourceName: string
-  deviceName?: string
 }
