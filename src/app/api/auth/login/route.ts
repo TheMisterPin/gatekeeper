@@ -57,6 +57,7 @@ export const POST = async (req: Request) => {
     if (storedPassword === password) {
       return Response.json({
         message: "Login Riuscito",
+        resourceFullName: user.FirstName + " " + user.LastName,
         status: {
           status: 200,
           message: "OK",

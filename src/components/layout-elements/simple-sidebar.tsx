@@ -1,0 +1,121 @@
+"use client"
+
+
+import { generateMockAppointments } from "@/lib/mocks/appointments"
+import { Home, Inbox, Calendar, Search, Settings } from "lucide-react"
+import { useEffect, useState } from "react"
+
+const items = [
+  { title: "Generate Appointments", icon: Home, onclick: () => postAppointments() },
+  { title: "Inbox", icon: Inbox, href: "#" },
+  { title: "Calendar", icon: Calendar, href: "#" },
+  { title: "Search", icon: Search, href: "#" },
+  { title: "Settings", icon: Settings, href: "#" },
+]
+function postAppointments() {
+  // Function to post generated appointments
+  (async () => {
+    try {
+      const appointments = await generateMockAppointments(10);
+      for (const appointment of appointments) {
+        try {
+          const res = await fetch('/api/appointments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(appointment),
+          });
+
+          if (!res.ok) {
+            const body = await res.json().catch(() => null);
+            // eslint-disable-next-line no-console
+            console.error('POST /api/appointments failed', res.status, body);
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('Created appointment', await res.json());
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error('Network error posting appointment', err);
+        }
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Error generating appointments', err);
+    }
+  })();
+}
+export default function SimpleSidebar({
+  open = true,
+  onClose,
+}: {
+  open?: boolean
+  onClose?: () => void
+}) {
+  const [rendered, setRendered] = useState(open)
+  const [active, setActive] = useState(open)
+
+useEffect(() => {
+    if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRendered(true)
+      // allow DOM to mount before enabling active class for transition
+      requestAnimationFrame(() => setActive(true))
+      return
+    }
+
+    // start closing animation
+    setActive(false)
+    const t = window.setTimeout(() => setRendered(false), 400)
+    return () => window.clearTimeout(t)
+  }, [open])
+
+  // prevent body scrolling while the sidebar is rendered (including during closing animation)
+  useEffect(() => {
+    if (!rendered) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [rendered])
+
+  if (!rendered) return null
+
+  return (
+    <div className="absolute inset-0 z-20 pointer-events-none">
+      {/* overlay - clicking closes; overlay does not blur page */}
+      <div
+        className={
+          "absolute inset-0 bg-black/40 transition-opacity duration-400 " +
+          (active ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")
+        }
+        onClick={() => onClose?.()}
+      />
+
+      {/* panel - slides in from right; clicking inside shouldn't close */}
+      <aside
+        className={
+          "absolute right-0 top-0 h-full w-64 transform bg-sidebar text-sidebar-foreground border-l border-sidebar-border p-4 overflow-y-auto transition-transform duration-400 ease-in-out " +
+          (active ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none")
+        }
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={() => postAppointments()}>Generate Appointments</button>
+        <nav className="flex flex-col gap-2">
+          {items.map((it) => (
+            <a
+              key={it.title}
+              href={it.href}
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            >
+              <it.icon className="size-4" />
+              <span>{it.title}</span>
+            </a>
+          ))}
+        </nav>
+      </aside>
+    </div>
+  )
+}

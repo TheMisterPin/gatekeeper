@@ -24,11 +24,12 @@ const user = await prisma.ePS_Resource.findFirst({
 }
 
 export async function getUserByID(userID: string) {
-    return await prisma.ePS_Resource.findUnique({
+   const user = await prisma.ePS_Resource.findUnique({
         where: {
             ResourceID: userID
         }
     });
+    return user;
 }
 export async function getUserByUserName(userName: string) {
     return await prisma.ePS_Resource.findFirst({

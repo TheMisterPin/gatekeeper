@@ -1,18 +1,19 @@
 
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/app-shell";
 import AppointmentsMainView from "../components/appointments-main-view";
 import ArrivalCheckInModal from "@/components/arrival-check-in-modal";
 
-import { LoginPage } from "@/components/pages/login-page-component";
 import { useAuth } from "@/hooks/auth-context";
 import { useErrorDialog } from "@/hooks/ErrorDialogContext";
 import { useCamera } from "../hooks/useCamera";
 import { mockAppointments, mockEmployees } from "../lib/mockData";
 import { downloadBadgeImage } from "../utils/badge";
 import { Appointment, ArrivalAppointmentInfo } from "@/types";
+import { HeaderLogo } from "@/components/layout-elements/header-logo";
 
 
 const TODAY = new Date().toISOString().slice(0, 10); 
@@ -34,8 +35,15 @@ function formatTodayLabel(date: string): string {
 }
 
 const HomePage: React.FC = () => {
-  const { reportError } = useErrorDialog();
+  useErrorDialog();
   const { isAuthenticated, currentUserName, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router]);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,8 +52,8 @@ const HomePage: React.FC = () => {
   );
 
   // Arrival modal state
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<
-    string | null
+  const [selectedAppointment, setSelectedAppointment] = useState<
+    Appointment | null
   >(null);
   const [mainConsentChecked, setMainConsentChecked] = useState(false);
   const [biometricConsentChecked, setBiometricConsentChecked] = useState(false);
@@ -55,6 +63,7 @@ const HomePage: React.FC = () => {
   const {
     isCameraActive,
     capturedImageUrl,
+    videoRef,
     startCamera,
     stopCamera,
     capturePhoto,
@@ -99,17 +108,12 @@ const HomePage: React.FC = () => {
     });
   }, [todaysAppointments, searchTerm, selectedEmployeeId]);
 
-  const selectedAppointment: Appointment | null =
-    selectedAppointmentId != null
-      ? todaysAppointments.find((a) => String(a.id) === selectedAppointmentId) ?? null
-      : null;
-
   const arrivalAppointmentInfo: ArrivalAppointmentInfo | null =
     selectedAppointment ? mapAppointmentToArrivalInfo(selectedAppointment) : null;
 
   function handleLogout() {
     logout();
-    setSelectedAppointmentId(null);
+    setSelectedAppointment(null);
     setMainConsentChecked(false);
     setBiometricConsentChecked(false);
     setCheckInLoading(false);
@@ -118,14 +122,15 @@ const HomePage: React.FC = () => {
     }
   }
 
-  function handleAppointmentClick(id: string) {
-    setSelectedAppointmentId(id);
+  function handleAppointmentClick(appointment: Appointment) {
+    setSelectedAppointment(appointment);
     setMainConsentChecked(false);
     setBiometricConsentChecked(false);
+    startCamera();
   }
 
   function handleCloseArrivalModal() {
-    setSelectedAppointmentId(null);
+    setSelectedAppointment(null);
     setMainConsentChecked(false);
     setBiometricConsentChecked(false);
     if (isCameraActive) {
@@ -150,7 +155,7 @@ const HomePage: React.FC = () => {
       // naive mock delay to simulate network call
       await new Promise((resolve) => setTimeout(resolve, 500));
       window.alert("Arrivo registrato.");
-      setSelectedAppointmentId(null);
+      setSelectedAppointment(null);
       if (isCameraActive) {
         stopCamera();
       }
@@ -182,12 +187,12 @@ const HomePage: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return null;
   }
 
   return (
     <AppShell
-      logo={<span className="font-bold tracking-tight">FactoryGate</span>}
+      logo={<HeaderLogo />}
       currentUserName={currentUserName}
       onLogout={handleLogout}
       navItems={[
@@ -199,7 +204,7 @@ const HomePage: React.FC = () => {
       }}
     >
       {/* Main content when authenticated: appointments page */}
-      <div className="flex flex-col h-full">
+  
         <AppointmentsMainView
           employees={mockEmployees}
           appointments={filteredAppointments}
@@ -209,7 +214,7 @@ const HomePage: React.FC = () => {
           onEmployeeFilterChange={setSelectedEmployeeId}
           onAppointmentClick={handleAppointmentClick}
         />
-      </div>
+  
 
       {/* Arrival modal */}
       <ArrivalCheckInModal
@@ -222,6 +227,7 @@ const HomePage: React.FC = () => {
         onBiometricConsentChange={setBiometricConsentChecked}
         isCameraActive={isCameraActive}
         capturedImageUrl={capturedImageUrl || undefined}
+        videoRef={videoRef}
         onCameraToggle={() => {
           if (isCameraActive) {
             stopCamera();

@@ -1,6 +1,9 @@
 "use client"
 
 import type { AppointmentsMainViewProps, Appointment, AppointmentStatus } from "@/types/appointments"
+import SectionHeader from "./layout-elements/section-header"
+import { Search } from "lucide-react"
+import { useEffect, useState } from "react"
 
 // Helper to format time from ISO string or extract HH:MM
 function formatTime(timeString: string): string {
@@ -33,15 +36,92 @@ const statusColors: Record<AppointmentStatus, string> = {
 
 export default function AppointmentsMainView({
   employees,
-  appointments,
+  appointments: appointmentsProp,
   searchTerm,
   selectedEmployeeId,
   onSearchTermChange,
   onEmployeeFilterChange,
   onAppointmentClick,
 }: AppointmentsMainViewProps) {
+  const [appointments, setAppointments] = useState<Appointment[]>(appointmentsProp ?? []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedHost, setSelectedHost] = useState<string | null>(null);
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null);
+
+  // Fetch today's appointments from the API on mount if no appointments passed in
+  useEffect(() => {
+    // If parent already provided appointments, skip fetching
+    if (appointmentsProp && appointmentsProp.length > 0) return;
+
+    const fetchAppointments = async () => {
+   
+      setError(null);
+      try {
+        
+        const res = await fetch(`/api/appointments`);
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error ?? `Request failed with status ${res.status}`);
+        }
+
+        const json = await res.json();
+        const rows: any[] = json?.appointments ?? [];
+
+        // Map Prisma rows to Appointment[] shape expected by this component
+        const mapped: Appointment[] = rows.map((r) => {
+          const start = r.StartTime ? new Date(r.StartTime).toISOString() : "";
+          const end = r.EndTime ? new Date(r.EndTime).toISOString() : undefined;
+          const hostId = r.HostId ?? r.HostID ?? String(r.HostId ?? "");
+          const host = employees?.find ? employees.find((e) => String(e.id) === String(hostId)) : undefined;
+          const hostNameFromRow =
+            r.HostName ?? r.hostName ?? r.Host?.FullName ?? r.host?.fullName ?? null;
+          const hostName = hostNameFromRow ?? host?.fullName ?? String(hostId);
+
+          return {
+            id: r.Id ?? r.id,
+            startTime: start,
+            endTime: end ?? null,
+            date: start ? start.split("T")[0] : "",
+            expectedAt: start,
+            expectedEnd: end ?? undefined,
+            hostId: hostId,
+            hostName,
+            visitorId: r.VisitorId ?? null,
+            visitorName: r.VisitorName ?? (r.VisitorId ?? "Visitor"),
+            visitorCompany: r.VisitorCompany ?? null,
+            purpose: r.Purpose ?? null,
+            location: r.Location ?? null,
+            status: (r.Status ?? "SCHEDULED") as any,
+            deviceId: r.DeviceId ?? null,
+            createdAt: r.CreatedAt ? new Date(r.CreatedAt).toISOString() : undefined,
+            updatedAt: r.UpdatedAt ? new Date(r.UpdatedAt).toISOString() : undefined,
+          };
+        });
+
+        setAppointments(mapped);
+        console.log("Fetched appointments:", mapped);
+      } catch (err: any) {
+        setError(err?.message ?? String(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [appointmentsProp, employees]);
+
+  // Apply filters: searchTerm, selectedEmployeeId (if provided by parent), selectedHost and selectedDateFilter
+  const filteredAppointments = appointments.filter((appointment) => {
+    if (searchTerm && !appointment.visitorName.toLowerCase().includes(searchTerm.toLowerCase())) return false
+    if (selectedEmployeeId && String(appointment.hostId) !== String(selectedEmployeeId)) return false
+    if (selectedHost && appointment.hostName !== selectedHost) return false
+    if (selectedDateFilter && appointment.date !== selectedDateFilter) return false
+    return true
+  })
+
   // Group appointments by hostId
-  const appointmentsByHost = appointments.reduce(
+  const appointmentsByHost = filteredAppointments.reduce(
     (acc, appointment) => {
       const hostKey = String(appointment.hostId)
       if (!acc[hostKey]) {
@@ -73,39 +153,64 @@ export default function AppointmentsMainView({
     return employees.find((emp) => emp.id === hostId)
   }
 
+  // derive unique host names and start dates from appointments for filters
+  const hostOptions = Array.from(new Set(appointments.map((a) => a.hostName))).filter(Boolean) as string[]
+  const dateOptions = Array.from(new Set(appointments.map((a) => a.date))).filter(Boolean) as string[]
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 border-blue-500 border-2 rounded-md h-full">
+      {loading && (
+        <div className="p-4">Caricamento appuntamenti…</div>
+      )}
+      {error && (
+        <div className="p-4 text-red-600">Errore caricamento: {error}</div>
+      )}
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-semibold text-gray-900">Appuntamenti di oggi</h1>
-        <p className="text-sm text-gray-600 mt-1">Oggi</p>
-      </div>
+<SectionHeader title="Appuntamenti di oggi" />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-4 flex-wrap">
+      <div className="flex items-center gap-4 flex-wrap px-4">
         {/* Search input */}
         <div className="flex-1 min-w-60">
-          <input
-            type="text"
-            placeholder="Cerca per nome visitatore..."
-            value={searchTerm}
-            onChange={(e) => onSearchTermChange?.(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cerca per nome visitatore..."
+              value={searchTerm}
+              onChange={(e) => onSearchTermChange?.(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
-        {/* Employee filter dropdown */}
+        {/* Host filter dropdown (populated from appointment hostName) */}
         <div className="w-64">
           <select
-            value={selectedEmployeeId || ""}
-            onChange={(e) => onEmployeeFilterChange?.(e.target.value || null)}
+            value={selectedHost ?? ""}
+            onChange={(e) => setSelectedHost(e.target.value || null)}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Tutti i dipendenti</option>
-            {employees.map((employee) => (
-              <option key={employee.id} value={employee.id}>
-                {employee.fullName}
-                {employee.department && ` - ${employee.department}`}
+            <option value="">Tutti gli host</option>
+            {hostOptions.map((hn) => (
+              <option key={hn} value={hn}>
+                {hn}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Date filter dropdown (unique start dates from appointments) */}
+        <div className="w-48">
+          <select
+            value={selectedDateFilter ?? ""}
+            onChange={(e) => setSelectedDateFilter(e.target.value || null)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Tutte le date</option>
+            {dateOptions.map((d) => (
+              <option key={d} value={d}>
+                {d}
               </option>
             ))}
           </select>
@@ -113,7 +218,7 @@ export default function AppointmentsMainView({
       </div>
 
       {/* Appointments list */}
-      {appointments.length === 0 ? (
+      {(!loading && appointments.length === 0) ? (
         // Empty state
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="text-gray-400 mb-4">
@@ -152,14 +257,14 @@ export default function AppointmentsMainView({
                   {group.appointments.map((appointment) => (
                     <button
                       key={appointment.id}
-                      onClick={() => onAppointmentClick?.(String(appointment.id))}
+                      onClick={() => onAppointmentClick?.(appointment)}
                       className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all text-left w-full"
                     >
                       <div className="flex items-start gap-4">
                         {/* Time */}
-                        <div className="shrink-0 text-center">
+                        <div className="flex-shrink-0 text-center">
                           <div className="text-2xl font-semibold text-gray-900">
-                            {formatTime(appointment.startTime ?? appointment.expectedAt)}
+                            {formatTime(appointment.expectedAt)}
                           </div>
                         </div>
 
@@ -175,7 +280,7 @@ export default function AppointmentsMainView({
 
                             {/* Status pill */}
                             <span
-                              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status]}`}
+                              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status]}`}
                             >
                               {statusLabels[appointment.status]}
                             </span>

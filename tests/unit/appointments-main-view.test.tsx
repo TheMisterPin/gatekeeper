@@ -74,7 +74,7 @@ describe("AppointmentsMainView", () => {
     assert.match(secondButtonText, /10:00/)
   })
 
-  it("wires appointment click handlers with the correct id", () => {
+  it("wires appointment click handlers with the selected appointment", () => {
     const onAppointmentClick = mock.fn()
 
     const tree = AppointmentsMainView({
@@ -89,7 +89,9 @@ describe("AppointmentsMainView", () => {
     firstButton.props.onClick()
 
     assert.equal(onAppointmentClick.mock.calls.length, 1)
-    assert.equal(onAppointmentClick.mock.calls[0].arguments[0], "101")
+    const payload = onAppointmentClick.mock.calls[0].arguments[0] as Appointment
+    assert.equal(payload.id, 101)
+    assert.equal(payload.visitorName, "Alice")
   })
 
   it("surfaces Italian status labels and colors", () => {

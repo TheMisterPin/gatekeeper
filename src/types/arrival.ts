@@ -35,6 +35,9 @@ export interface ArrivalCheckInModalProps {
   /** URL or data URL of the captured image, if any */
   capturedImageUrl?: string
 
+  /** Video element ref for live camera preview */
+  videoRef: React.RefObject<HTMLVideoElement>
+
   /** Called when user clicks the button to start/stop the camera preview */
   onCameraToggle?: () => void
 

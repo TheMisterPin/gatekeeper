@@ -1,42 +1,70 @@
 import { prisma } from "@/lib/prisma";
-import { getRandomDate } from "@/utils/get-random-date";
+import app from "next/app";
 
-const resources = await prisma.ePS_Resource.findMany()
-const visitor = await prisma.rEM_Contact.findMany({where: {TypeID: 3}})
-const getRandomResource = () => {
-    const randomIndex = Math.floor(Math.random() * resources.length);
-    return resources[randomIndex];
-}
-const getRandomVisitor = () => {
-    const randomIndex = Math.floor(Math.random() * visitor.length);
-    return visitor[randomIndex];
-}
-const start = new Date("2025-11-26T00:00:00");
-const end   = new Date("2025-11-30T23:59:59");
+async function fixAppointmentNames() {
+    const appointments = await prisma.vIS_VisitAppointment.findMany({where: {HostName: null}})
+const hosts = await prisma.ePS_Resource.findMany()
+// update hostname in appointments with name + surname from hosts
+const hostMap = new Map(hosts.map(h => [h.ResourceID, `${h.FirstName} ${h.LastName}`.trim()]))
 
-const createNewAppointment = () => {
-    const randomDate = getRandomDate(start, end);
-    const resource = getRandomResource();
-    const visitor = getRandomVisitor();
-    const newAppointment = {
-        Location: resource.CustString2 ?? "Ufficio Centrale",
-        VisitorName: visitor.Name ?? "Visitatore Sconosciuto",
-        HostId : resource.ResourceID,
-        VisitorId: visitor.ID,
-        StartTime: randomDate
-}    
-return prisma.vIS_VisitAppointment.create({ data: newAppointment });}
-async function generate(quantity : number){
-  for (let i = 0; i < quantity; i++) {
-    await createNewAppointment();
+appointments.map(async (app) => {
+  const hostName = hostMap.get(app.HostId);
+  if (hostName) {
+    return prisma.vIS_VisitAppointment.update({
+      where: { Id: app.Id },
+      data: { HostName: hostName }
+    });
+  }
+});
+    
 }
-}
-interface RandomAppointmentRequest {
-    quantity: number;
+async function fixCompanyNames(){
+    const appointments = await prisma.vIS_VisitAppointment.findMany({where: {VisitorCompany: null}})
+    const visitors = await prisma.rEM_Contact.findMany()
+    const visitorMap = new Map(visitors.map(v => [v.ID, v.CustString1]))
+    appointments.map(async (app) => {
+      const companyName = visitorMap.get(app.VisitorId!);
+      if (companyName) {
+        return prisma.vIS_VisitAppointment.update({
+          where: { Id: app.Id },
+          data: { VisitorCompany: companyName }
+        });
+      }
+    });
 }
 
-export async function POST(request: Request) {
-  const body : RandomAppointmentRequest = await request.json();
-  await generate(body.quantity);    
-  return new Response(`Generated ${body.quantity} appointments`);
+async function fixVisitorNames() {
+const appointments = await prisma.vIS_VisitAppointment.findMany();
+
+const visitors = await prisma.rEM_Contact.findMany();
+
+const visitorMap = new Map(visitors.map(v => [v.ID, `${v.Name}`.trim()]));
+
+appointments.map(async (app) => {
+
+    const visitorName = visitorMap.get(app.VisitorId!);
+
+    if (visitorName) {
+
+        return prisma.vIS_VisitAppointment.update({
+
+            where: { Id: app.Id },
+
+            data: { VisitorName: visitorName }
+
+        });
+
+    }
+
+});
+
+}
+
+
+export async function POST() {
+await fixAppointmentNames();
+await fixCompanyNames();
+await fixVisitorNames();
+
+return Response.json({ success: true });
 }

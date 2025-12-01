@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface UseCameraResult {
   isCameraActive: boolean;
   capturedImageUrl: string | null;
+  videoRef: React.RefObject<HTMLVideoElement>;
   startCamera: () => Promise<void>;
   stopCamera: () => void;
   capturePhoto: () => void;
@@ -23,18 +24,29 @@ export function useCamera(): UseCameraResult {
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const attachIntervalRef = useRef<number | null>(null);
 
-  // Lazily create video/canvas elements when needed
+  // Lazily create canvas element when needed
   useEffect(() => {
-    if (!videoRef.current) {
-      const video = document.createElement("video");
-      video.playsInline = true;
-      video.muted = true;
-      videoRef.current = video;
-    }
     if (!canvasRef.current) {
       canvasRef.current = document.createElement("canvas");
     }
+  }, []);
+
+  const attachStreamToVideo = useCallback(async () => {
+    const stream = streamRef.current;
+    const video = videoRef.current;
+    if (!stream || !video) {
+      return false;
+    }
+
+    video.srcObject = stream;
+    try {
+      await video.play();
+    } catch (err) {
+      console.warn("Video playback failed", err);
+    }
+    return true;
   }, []);
 
   const startCamera = useCallback(async () => {
@@ -48,9 +60,15 @@ export function useCamera(): UseCameraResult {
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+      const attached = await attachStreamToVideo();
+      if (!attached) {
+        attachIntervalRef.current = window.setInterval(async () => {
+          const didAttach = await attachStreamToVideo();
+          if (didAttach && attachIntervalRef.current) {
+            window.clearInterval(attachIntervalRef.current);
+            attachIntervalRef.current = null;
+          }
+        }, 50);
       }
       setIsCameraActive(true);
       setCapturedImageUrl(null);
@@ -58,9 +76,13 @@ export function useCamera(): UseCameraResult {
       console.error("Unable to start camera", err);
       window.alert("Impossibile accedere alla fotocamera.");
     }
-  }, []);
+  }, [attachStreamToVideo]);
 
   const stopCamera = useCallback(() => {
+    if (attachIntervalRef.current) {
+      window.clearInterval(attachIntervalRef.current);
+      attachIntervalRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
@@ -95,6 +117,10 @@ export function useCamera(): UseCameraResult {
   // Clean up on unmount
   useEffect(() => {
     return () => {
+      if (attachIntervalRef.current) {
+        window.clearInterval(attachIntervalRef.current);
+        attachIntervalRef.current = null;
+      }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
       }
@@ -104,6 +130,7 @@ export function useCamera(): UseCameraResult {
   return {
     isCameraActive,
     capturedImageUrl,
+    videoRef,
     startCamera,
     stopCamera,
     capturePhoto,

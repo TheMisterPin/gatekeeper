@@ -92,5 +92,5 @@ export interface AppointmentsMainViewProps {
   onEmployeeFilterChange?: (employeeId: string | null) => void
 
   /** Called when an appointment card is clicked */
-  onAppointmentClick?: (appointmentId: string) => void
+  onAppointmentClick?: (appointment: Appointment) => void
 }

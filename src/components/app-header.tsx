@@ -1,40 +1,35 @@
 "use client"
+"use client"
 
 import React from "react"
+import { Button } from "@/components/ui/button"
+import { PanelLeftIcon } from "lucide-react"
 
 interface AppHeaderProps {
   logo?: React.ReactNode
-  currentUserName?: string
-  onLogout?: () => void
-  height: number
+  onToggleSidebar?: () => void
 }
 
 export function AppHeaderComponent({
   logo,
-  currentUserName,
-  onLogout,
-  height,
+  onToggleSidebar,
 }: AppHeaderProps) {
   return (
     <header
-      className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center justify-between px-6"
-      style={{ height: `${height}px` }}
+      className="fixed top-0 left-0 right-0 bg-topbanner border-b border-gray-200 flex items-center justify-between px-6 h-16"
+     
     >
       <div className="flex items-center gap-2">
-        {logo ?? <span className="font-semibold">FactoryGate</span>}
+
+        {logo}
       </div>
+
       <div className="flex items-center gap-4">
-        {currentUserName && (
-          <span className="text-sm text-gray-600">Ciao, {currentUserName}</span>
-        )}
-        {onLogout && (
-          <button
-            type="button"
-            onClick={onLogout}
-            className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 hover:bg-gray-100"
-          >
-            Logout
-          </button>
+        {onToggleSidebar && (
+          <Button variant="ghost" size="icon" onClick={onToggleSidebar}>
+            <PanelLeftIcon />
+            <span className="sr-only">Toggle Sidebar</span>
+          </Button>
         )}
       </div>
     </header>

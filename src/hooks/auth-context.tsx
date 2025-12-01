@@ -40,6 +40,7 @@ async function performLoginRequest(
 		return {
 			message: payload.message,
 			status: payload.status,
+			resourceFullName: payload.resourceFullName,
 			error: payload.error ?? {
 				status: response.status,
 				message: payload.message,
@@ -50,6 +51,7 @@ async function performLoginRequest(
 	return {
 		message: payload.message,
 		status: payload.status,
+		resourceFullName: payload.resourceFullName,
 	}
 }
 
@@ -72,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				setLoginError(result.message)
 			} else {
 				setIsAuthenticated(true)
-				setCurrentUserName(values.username)
+				setCurrentUserName(result.resourceFullName)
 			}
 
 			return result

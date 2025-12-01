@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import type { ArrivalCheckInModalProps } from "@/types/arrival"
@@ -12,6 +13,7 @@ export default function ArrivalCheckInModal({
   onBiometricConsentChange,
   isCameraActive,
   capturedImageUrl,
+  videoRef,
   onCameraToggle,
   onCapturePhoto,
   onConfirmCheckIn,
@@ -108,6 +110,14 @@ export default function ArrivalCheckInModal({
                     <img
                       src={capturedImageUrl || "/placeholder.svg"}
                       alt="Foto acquisita"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : isCameraActive ? (
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
                       className="w-full h-full object-cover"
                     />
                   ) : (

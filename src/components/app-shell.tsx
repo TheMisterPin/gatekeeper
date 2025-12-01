@@ -1,8 +1,10 @@
 "use client"
 
 import { NavItem } from "@/types/components/nav-item"
-import React from "react"
+import React, { useCallback, useState } from "react"
 import { AppHeaderComponent } from "./app-header"
+import AppFooter from "./layout-elements/app-footer"
+import SimpleSidebar from "./layout-elements/simple-sidebar"
 export interface AppShellProps {
   logo?: React.ReactNode
   currentUserName?: string
@@ -15,8 +17,6 @@ export interface AppShellProps {
 export default function AppShell({
   currentUserName,
   onLogout,
-  navItems = [],
-  onNavItemClick,
   logo,
   children,
 }: AppShellProps) {
@@ -24,21 +24,20 @@ export default function AppShell({
   const headerHeight = 64 // px
   const footerHeight = 56 // px
 
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((s) => !s)
+  }, [])
+
 
 
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <AppHeaderComponent
-        logo={logo}
-        currentUserName={currentUserName}
-        onLogout={onLogout}
-        height={headerHeight}
-      />
-
-      {/* Main content area */}
+    <div className="min-h-screen flex flex-col w-full">
+      <AppHeaderComponent logo={logo} onToggleSidebar={toggleSidebar} />
       <div
-        className="flex"
+        className={`flex relative ${sidebarOpen ? 'overflow-hidden' : ''}`}
         style={{
           marginTop: `${headerHeight}px`,
           marginBottom: `${footerHeight}px`,
@@ -48,11 +47,10 @@ export default function AppShell({
         {/* Main content (left side) */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-6">{children}</main>
         {/* Navigation sidebar (right side) */}
-
+        <SimpleSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Footer */}
-
+      <AppFooter currentUserName={currentUserName} onLogout={onLogout} footerHeight={footerHeight} />
     </div>
   )
 }

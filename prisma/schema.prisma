@@ -8167,6 +8167,7 @@ model VIS_VisitAppointment {
   VisitorName    String         @db.NVarChar(150)
   VisitorCompany String?        @db.NVarChar(150)
   HostId         String         @db.NVarChar(50)
+  HostName      String?         @db.NVarChar(150)
   DeviceId       Int?
   CreatedAt      DateTime       @default(dbgenerated("sysutcdatetime()"), map: "DF_VIS_VisitAppointment_CreatedAt")
   UpdatedAt      DateTime       @default(dbgenerated("sysutcdatetime()"), map: "DF_VIS_VisitAppointment_UpdatedAt")
