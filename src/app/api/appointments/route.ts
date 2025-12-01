@@ -1,34 +1,87 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getUserByID } from "@/utils/db/users/get-user";
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import type { Employee } from "@/types"
 
+export const runtime = "nodejs"
 
-export const runtime = "nodejs";
+function getDateRange(dateString: string) {
+  const parsed = new Date(dateString)
+  if (Number.isNaN(parsed.getTime())) {
+    return null
+  }
+  const start = new Date(parsed)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 1)
+  return { start, end }
+}
 
 export async function GET(req: NextRequest) {
-  // Support date passed either as a query param or in the request body
-  const url = new URL(req.url);
-  let date: string | null = url.searchParams.get("date");
-  if (!date) {
+  const url = new URL(req.url)
+  const statusParam = url.searchParams.get("status")
+  let dateParam: string | null = url.searchParams.get("date")
+
+  if (!dateParam) {
     try {
-      const body = await req.json();
-      date = body?.date ?? null;
+      const body = await req.json()
+      dateParam = body?.date ?? null
     } catch {
-      date = null;
+      dateParam = null
     }
   }
 
-  const where: any = { Status: "SCHEDULED" };
-  if (date) {
-    // Expecting an ISO date or date string that can be compared to StartTime
-    where.StartTime = new Date(date);
+  const where: Record<string, unknown> = {}
+
+  if (statusParam && statusParam.toUpperCase() !== "ALL") {
+    where.Status = statusParam
+  } else if (!statusParam) {
+    where.Status = "SCHEDULED"
   }
 
-  const list = await prisma.vIS_VisitAppointment.findMany({ where });
+  if (dateParam) {
+    const range = getDateRange(dateParam)
+    if (!range) {
+      return NextResponse.json({ error: "Invalid date parameter" }, { status: 400 })
+    }
+    where.StartTime = { gte: range.start, lt: range.end }
+  }
 
-  return NextResponse.json({ appointments: list });
+  try {
+    const list = await prisma.vIS_VisitAppointment.findMany({
+      where,
+      orderBy: { StartTime: "asc" },
+    })
+    const employeeMap = new Map<string, Employee>()
+    const dateSet = new Set<string>()
+
+    for (const appointment of list) {
+      if (appointment.StartTime) {
+        dateSet.add(appointment.StartTime.toISOString().slice(0, 10))
+      }
+
+      const hostId = appointment.HostId?.toString().trim()
+      if (hostId && !employeeMap.has(hostId)) {
+        employeeMap.set(hostId, {
+          id: hostId,
+          fullName: appointment.HostName ?? hostId,
+          role: undefined,
+          department: undefined,
+          location: undefined,
+        })
+      }
+    }
+
+    const employees = Array.from(employeeMap.values()).sort((a, b) => a.fullName.localeCompare(b.fullName, "it-IT"))
+    const dates = Array.from(dateSet.values()).sort()
+
+    return NextResponse.json({ appointments: list, employees, dates })
+  } catch (err) {
+    console.error("Unable to query appointments", err)
+    const message = err instanceof Error ? err.message : "Unknown database error"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {

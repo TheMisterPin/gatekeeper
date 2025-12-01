@@ -74,7 +74,7 @@ export interface AppointmentsMainViewProps {
    * Assume this array is already filtered and sorted by the parent.
    * The component should only group and render what it receives.
    */
-  appointments: Appointment[]
+  appointments?: Appointment[]
 
   /** Controlled value for the search input (search by visitor name) */
   searchTerm: string
@@ -93,4 +93,13 @@ export interface AppointmentsMainViewProps {
 
   /** Called when an appointment card is clicked */
   onAppointmentClick?: (appointment: Appointment) => void
+
+  /** Optional loading flag to show a spinner */
+  loading?: boolean
+
+  /** Optional error message to display above the list */
+  error?: string | null
+
+  /** Optional list of all selectable dates returned by the API */
+  availableDates?: string[]
 }

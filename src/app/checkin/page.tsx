@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCamera } from "@/hooks/useCamera";
-import { mockAppointments } from "@/lib/mockData";
 import { Appointment } from "@/types";
+import { mapApiAppointmentRow } from "@/utils/mappers/appointment- mapper";
 
 const TODAY = "2025-11-25";
 
@@ -19,14 +19,54 @@ function formatDateLabel(iso: string) {
 
 export default function CheckInPage() {
   const [hasAppointment, setHasAppointment] = useState<boolean | null>(null);
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [appointmentConfirmed, setAppointmentConfirmed] = useState(false);
   const [badgeChoice, setBadgeChoice] = useState<"si" | "no" | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { isCameraActive, capturedImageUrl, startCamera, stopCamera, capturePhoto } = useCamera();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAppointments = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/appointments?status=ALL", {
+          method: "GET",
+          cache: "no-store",
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = payload?.error ?? "Impossibile recuperare gli appuntamenti";
+          throw new Error(`[${response.status}] ${message}`);
+        }
+        const rows: any[] = payload?.appointments ?? [];
+        if (!cancelled) {
+          setAppointments(rows.map(mapApiAppointmentRow));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadAppointments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const todaysAppointments = useMemo(
     () =>
@@ -152,6 +192,10 @@ export default function CheckInPage() {
 
         {hasAppointment === true && (
           <div className="space-y-6">
+            {loading && <p className="text-sm text-gray-500">Caricamento appuntamenti…</p>}
+            {error && (
+              <p className="text-sm text-red-600">{error}</p>
+            )}
             <div className="space-y-2">
               <label htmlFor="search" className="block text-sm font-medium text-gray-700">
                 Cerca il tuo nome

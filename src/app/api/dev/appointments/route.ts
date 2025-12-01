@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import app from "next/app";
+
 
 async function fixAppointmentNames() {
     const appointments = await prisma.vIS_VisitAppointment.findMany({where: {HostName: null}})

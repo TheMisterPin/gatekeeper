@@ -1,15 +1,28 @@
 
-import { NextRequest, NextResponse } from "next/server";
-import { readJsonFile, writeJsonFile } from "@/lib/jsonDb";
+import { NextRequest, NextResponse } from "next/server"
+import { confirmArrival } from "@/lib/appointments/confirm-arrival"
 
-
-export const runtime = "nodejs";
-
+export const runtime = "nodejs"
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
-  const appointmentId = params.id;
-  
+  const appointmentIdRaw = params.id
+  const appointmentId = Number(appointmentIdRaw)
+
+  if (!Number.isFinite(appointmentId)) {
+    return NextResponse.json({ error: "Invalid appointment id" }, { status: 400 })
+  }
+
+  try {
+    const appointment = await confirmArrival(appointmentId)
+    return NextResponse.json({ message: "Check-in successful", appointment })
+  } catch (err: unknown) {
+    console.error("Unable to confirm arrival", err)
+    const isRecordMissing = typeof err === "object" && err !== null && "code" in err && (err as any).code === "P2025"
+    const status = isRecordMissing ? 404 : 500
+    const message = err instanceof Error ? err.message : "Unable to confirm arrival"
+    return NextResponse.json({ error: message }, { status })
+  }
 }

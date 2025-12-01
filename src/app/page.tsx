@@ -10,32 +10,18 @@ import ArrivalCheckInModal from "@/components/arrival-check-in-modal";
 import { useAuth } from "@/hooks/auth-context";
 import { useErrorDialog } from "@/hooks/ErrorDialogContext";
 import { useCamera } from "../hooks/useCamera";
-import { mockAppointments, mockEmployees } from "../lib/mockData";
 import { downloadBadgeImage } from "../utils/badge";
-import { Appointment, ArrivalAppointmentInfo } from "@/types";
+
+import { Appointment, ArrivalAppointmentInfo, AppointmentStatus, Employee } from "@/types";
 import { HeaderLogo } from "@/components/layout-elements/header-logo";
+import { mapApiAppointmentRow, mapAppointmentToArrivalInfo } from "@/utils/mappers/appointment- mapper";
+import { formatTodayLabel } from "@/utils/date-utils";
 
 
-const TODAY = new Date().toISOString().slice(0, 10); 
-function mapAppointmentToArrivalInfo(appointment: Appointment): ArrivalAppointmentInfo {
-  const scheduledIso = appointment.startTime ?? appointment.expectedAt;
-  return {
-    id: String(appointment.id),
-    visitorName: appointment.visitorName,
-    visitorCompany: appointment.visitorCompany ?? undefined,
-    hostName: appointment.hostName,
-    scheduledTime: scheduledIso ? scheduledIso.slice(11, 16) : "",
-    location: appointment.location ?? undefined,
-  };
-}
 
-function formatTodayLabel(date: string): string {
-  const [year, month, day] = date.split("-");
-  return `${day}/${month}/${year}`;
-}
 
 const HomePage: React.FC = () => {
-  useErrorDialog();
+  const { reportError } = useErrorDialog();
   const { isAuthenticated, currentUserName, logout } = useAuth();
   const router = useRouter();
 
@@ -50,6 +36,13 @@ const HomePage: React.FC = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
     null
   );
+
+  // Appointments data fetched from the API
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+  const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
 
   // Arrival modal state
   const [selectedAppointment, setSelectedAppointment] = useState<
@@ -69,17 +62,87 @@ const HomePage: React.FC = () => {
     capturePhoto,
   } = useCamera();
 
-  const todayLabel = formatTodayLabel(TODAY);
+  const todayLabel = formatTodayLabel();
 
-  // Pre-filter appointments to "today" only
-  const todaysAppointments: Appointment[] = useMemo(
-    () =>
-      mockAppointments.filter((a) => {
-        const dateFromStart = a.startTime?.slice(0, 10);
-        return (a.date ?? dateFromStart) === TODAY;
-      }),
-    []
-  );
+  // Load today's appointments from the API
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchAppointments = async () => {
+      setAppointmentsLoading(true);
+      setAppointmentsError(null);
+      try {
+        console.info("[appointments] fetching");
+        const response = await fetch(`/api/appointments`, {
+          method: "GET",
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = payload?.error ?? "Richiesta appuntamenti non riuscita";
+          throw new Error(`[${response.status}] ${message}`);
+        }
+        const rows: any[] = payload?.appointments ?? [];
+        const employeesPayload: any[] = Array.isArray(payload?.employees) ? payload.employees : [];
+        const datesPayload: any[] = Array.isArray(payload?.dates) ? payload.dates : [];
+        if (!cancelled) {
+          setAppointments(rows.map(mapApiAppointmentRow));
+          setEmployees(
+            employeesPayload
+              .map((emp) => {
+                const id = emp?.id ?? emp?.HostId ?? emp?.hostId;
+                if (!id) return null;
+                return {
+                  id: String(id),
+                  fullName: emp?.fullName ?? emp?.HostName ?? emp?.hostName ?? String(id),
+                  role: emp?.role ?? undefined,
+                  department: emp?.department ?? undefined,
+                  location: emp?.location ?? undefined,
+                } as Employee;
+              })
+              .filter(Boolean) as Employee[],
+          );
+          setAvailableDates(
+            datesPayload
+              .map((date) => {
+                if (!date) return null;
+                return typeof date === "string" ? date : String(date);
+              })
+              .filter(Boolean) as string[],
+          );
+          console.info("[appointments] received rows", rows.length);
+          if (rows.length === 0) {
+            console.warn("[appointments] Nessun appuntamento restituito. Verificare la sorgente dati o il filtro data.");
+          }
+        }
+      } catch (err) {
+        console.error("Unable to load appointments", err);
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : String(err);
+          setAppointmentsError(message);
+          reportError(err, {
+            source: "appointments/fetch",
+            title: "Impossibile caricare gli appuntamenti",
+            details: message,
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setAppointmentsLoading(false);
+        }
+      }
+    };
+
+    fetchAppointments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reportError]);
+
+  // Server already filters by date; keep memoized reference
+  const todaysAppointments: Appointment[] = useMemo(() => appointments, [appointments]);
 
   // Apply search + employee filter + sort (by host, then time)
   const filteredAppointments: Appointment[] = useMemo(() => {
@@ -110,6 +173,17 @@ const HomePage: React.FC = () => {
 
   const arrivalAppointmentInfo: ArrivalAppointmentInfo | null =
     selectedAppointment ? mapAppointmentToArrivalInfo(selectedAppointment) : null;
+
+  // Close modal if the selected appointment disappears (e.g. after data refresh)
+  useEffect(() => {
+    if (!selectedAppointment) return;
+    const stillExists = appointments.some(
+      (appointment) => String(appointment.id) === String(selectedAppointment.id),
+    );
+    if (!stillExists) {
+      setSelectedAppointment(null);
+    }
+  }, [appointments, selectedAppointment]);
 
   function handleLogout() {
     logout();
@@ -145,23 +219,58 @@ const HomePage: React.FC = () => {
       return;
     }
 
-    // Here you would call your backend to mark the appointment as checked-in
-    // and create the corresponding VisitLog record.
+    const appointmentToConfirm = selectedAppointment;
+    const normalizedAppointmentId =
+      typeof appointmentToConfirm.id === "number"
+        ? appointmentToConfirm.id
+        : Number(appointmentToConfirm.id);
+
+    if (!Number.isFinite(normalizedAppointmentId)) {
+      reportError("Impossibile registrare l'arrivo perché l'appuntamento non proviene dal server.", {
+        source: "appointments/checkin",
+        title: "Check-in non disponibile",
+      });
+      return;
+    }
+
     setCheckInLoading(true);
     try {
-      console.log("Check-in appointment", {
-        appointmentId: selectedAppointment.id
+      const response = await fetch(`/api/appointments/${normalizedAppointmentId}/checkin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          visitorId: appointmentToConfirm.visitorId ?? null,
+          biometricConsent: biometricConsentChecked,
+          badgePhotoAttached: Boolean(capturedImageUrl),
+        }),
       });
-      // naive mock delay to simulate network call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      window.alert("Arrivo registrato.");
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        const errorMessage = body?.error ?? "Richiesta di check-in non riuscita";
+        throw new Error(`[${response.status}] ${errorMessage}`);
+      }
+
+      setAppointments((current) =>
+        current.map((appt) =>
+          String(appt.id) === String(appointmentToConfirm.id)
+            ? { ...appt, status: "CHECKED_IN" as AppointmentStatus }
+            : appt,
+        ),
+      );
       setSelectedAppointment(null);
       if (isCameraActive) {
         stopCamera();
       }
     } catch (err) {
       console.error("Check-in failed", err);
-      window.alert("Errore durante la registrazione dell'arrivo.");
+      reportError(err, {
+        source: "appointments/checkin",
+        title: "Errore durante la registrazione dell'arrivo",
+        details: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setCheckInLoading(false);
     }
@@ -204,15 +313,17 @@ const HomePage: React.FC = () => {
       }}
     >
       {/* Main content when authenticated: appointments page */}
-  
         <AppointmentsMainView
-          employees={mockEmployees}
+          employees={employees}
           appointments={filteredAppointments}
           searchTerm={searchTerm}
           selectedEmployeeId={selectedEmployeeId}
           onSearchTermChange={setSearchTerm}
           onEmployeeFilterChange={setSelectedEmployeeId}
           onAppointmentClick={handleAppointmentClick}
+          loading={appointmentsLoading}
+          error={appointmentsError}
+          availableDates={availableDates}
         />
   
 
