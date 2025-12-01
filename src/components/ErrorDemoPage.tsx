@@ -2,8 +2,8 @@
 "use client";
 
 import React from "react";
-import { ErrorDialogProvider, useErrorDialog } from "../context/ErrorDialogContext";
-import ErrorDialogPortal from "../components/ErrorDialogPortal";
+import { ErrorDialogProvider, useErrorDialog } from "@/hooks/ErrorDialogContext";
+import ErrorDialogPortal from "./ErrorDialogPortal";
 
 const ErrorDemoInner: React.FC = () => {
   const { reportError } = useErrorDialog();
