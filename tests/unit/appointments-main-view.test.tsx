@@ -1,13 +1,8 @@
 import assert from "node:assert/strict"
 import { describe, it, mock } from "node:test"
 import AppointmentsMainView from "@/components/appointments-main-view"
-import type { Appointment } from "@/types/appointments"
+import type { Appointment, AppointmentHostGroup } from "@/types/appointments"
 import { extractTextContent, findElementsByType } from "../helpers/reactTree"
-
-const employees = [
-  { id: "1", fullName: "Mario Rossi", department: "Vendite" },
-  { id: "2", fullName: "Lisa Bianchi", department: "Finanza" },
-]
 
 const sampleAppointments: Appointment[] = [
   {
@@ -18,6 +13,8 @@ const sampleAppointments: Appointment[] = [
     hostName: "Mario Rossi",
     status: "SCHEDULED",
     expectedAt: "2025-11-25T09:00:00Z",
+    startTime: "2025-11-25T09:00:00Z",
+    date: "2025-11-25",
   },
   {
     id: 202,
@@ -27,6 +24,8 @@ const sampleAppointments: Appointment[] = [
     hostName: "Mario Rossi",
     status: "CHECKED_IN",
     expectedAt: "2025-11-25T10:00:00Z",
+    startTime: "2025-11-25T10:00:00Z",
+    date: "2025-11-25",
   },
   {
     id: 303,
@@ -36,16 +35,42 @@ const sampleAppointments: Appointment[] = [
     hostName: "Lisa Bianchi",
     status: "CANCELLED",
     expectedAt: "2025-11-25T08:30:00Z",
+    startTime: "2025-11-25T08:30:00Z",
+    date: "2025-11-25",
   },
 ]
+
+const groupedAppointments: AppointmentHostGroup[] = [
+  {
+    hostId: "1",
+    hostName: "Mario Rossi",
+    department: "Vendite",
+    appointments: sampleAppointments.filter((appt) => appt.hostId === "1"),
+  },
+  {
+    hostId: "2",
+    hostName: "Lisa Bianchi",
+    department: "Finanza",
+    appointments: sampleAppointments.filter((appt) => appt.hostId === "2"),
+  },
+]
+
+const hostOptions = [
+  { id: "1", fullName: "Mario Rossi" },
+  { id: "2", fullName: "Lisa Bianchi" },
+]
+
+const dateOptions = ["2025-11-25"]
 
 describe("AppointmentsMainView", () => {
   it("renders an empty state when there are no appointments", () => {
     const tree = AppointmentsMainView({
-      employees,
-      appointments: [],
       searchTerm: "",
       selectedEmployeeId: null,
+      selectedDateFilter: null,
+      hostOptions,
+      dateOptions,
+      groupedAppointments: [],
     })
 
     const text = extractTextContent(tree)
@@ -55,10 +80,12 @@ describe("AppointmentsMainView", () => {
 
   it("groups appointments by host and sorts them by time", () => {
     const tree = AppointmentsMainView({
-      employees,
-      appointments: sampleAppointments,
       searchTerm: "",
       selectedEmployeeId: null,
+      selectedDateFilter: null,
+      hostOptions,
+      dateOptions,
+      groupedAppointments,
     })
 
     const containerText = extractTextContent(tree)
@@ -69,19 +96,29 @@ describe("AppointmentsMainView", () => {
 
     const hostButtons = findElementsByType(tree, "button")
     const firstButtonText = extractTextContent(hostButtons[0].props.children)
-    assert.match(firstButtonText, /09:00/)
     const secondButtonText = extractTextContent(hostButtons[1].props.children)
-    assert.match(secondButtonText, /10:00/)
+    const expectedFirstTime = new Date(sampleAppointments[0].expectedAt).toLocaleTimeString("it-IT", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+    const expectedSecondTime = new Date(sampleAppointments[1].expectedAt).toLocaleTimeString("it-IT", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+    assert.ok(firstButtonText.includes(expectedFirstTime))
+    assert.ok(secondButtonText.includes(expectedSecondTime))
   })
 
   it("wires appointment click handlers with the selected appointment", () => {
     const onAppointmentClick = mock.fn()
 
     const tree = AppointmentsMainView({
-      employees,
-      appointments: sampleAppointments,
       searchTerm: "",
       selectedEmployeeId: null,
+      selectedDateFilter: null,
+      hostOptions,
+      dateOptions,
+      groupedAppointments,
       onAppointmentClick,
     })
 
@@ -96,10 +133,12 @@ describe("AppointmentsMainView", () => {
 
   it("surfaces Italian status labels and colors", () => {
     const tree = AppointmentsMainView({
-      employees,
-      appointments: sampleAppointments,
       searchTerm: "",
       selectedEmployeeId: null,
+      selectedDateFilter: null,
+      hostOptions,
+      dateOptions,
+      groupedAppointments,
     })
 
     const allBadges = findElementsByType(tree, "span").map((badge) => extractTextContent(badge.props.children))

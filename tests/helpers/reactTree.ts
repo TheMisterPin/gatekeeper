@@ -1,12 +1,20 @@
 import type { ReactElement, ReactNode } from "react"
 
+function renderIfFunction(element: ReactElement): ReactNode {
+  if (typeof element.type === "function") {
+    return (element.type as (props: Record<string, unknown>) => ReactNode)(element.props)
+  }
+  return element.props?.children
+}
+
 function collectText(node: ReactNode): string {
   if (node == null || typeof node === "boolean") return ""
   if (typeof node === "string" || typeof node === "number") return String(node)
   if (Array.isArray(node)) return node.map(collectText).join("")
   if (typeof node === "object" && "props" in (node as Record<string, unknown>)) {
     const element = node as ReactElement
-    return collectText(element.props.children)
+    const rendered = renderIfFunction(element)
+    return collectText(rendered)
   }
   return ""
 }
@@ -26,7 +34,8 @@ export function findElementsByType(node: ReactNode, type: string): ReactElement[
       if (element.type === type) {
         results.push(element)
       }
-      walk(element.props?.children)
+      const rendered = renderIfFunction(element)
+      walk(rendered)
     }
   }
 

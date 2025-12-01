@@ -65,17 +65,20 @@ export interface Appointment {
   custDate3?: string | null
 }
 
+export interface HostOption {
+  id: string
+  fullName: string
+}
+
+export interface AppointmentHostGroup {
+  hostId: string
+  hostName: string
+  department?: string
+  location?: string
+  appointments: Appointment[]
+}
+
 export interface AppointmentsMainViewProps {
-  /** Employees who can receive visitors (for the filter dropdown) */
-  employees: Employee[]
-
-  /**
-   * Appointments to display for "today".
-   * Assume this array is already filtered and sorted by the parent.
-   * The component should only group and render what it receives.
-   */
-  appointments?: Appointment[]
-
   /** Controlled value for the search input (search by visitor name) */
   searchTerm: string
 
@@ -85,11 +88,26 @@ export interface AppointmentsMainViewProps {
    */
   selectedEmployeeId?: string | null
 
+  /** Controlled value for the date filter dropdown */
+  selectedDateFilter?: string | null
+
+  /** Host options to display in the dropdown */
+  hostOptions: HostOption[]
+
+  /** Date options returned by the API */
+  dateOptions: string[]
+
+  /** Already grouped and sorted appointments */
+  groupedAppointments: AppointmentHostGroup[]
+
   /** Called whenever the search input changes */
   onSearchTermChange?: (value: string) => void
 
   /** Called whenever the employee filter changes */
   onEmployeeFilterChange?: (employeeId: string | null) => void
+
+  /** Called whenever the date filter changes */
+  onDateFilterChange?: (value: string | null) => void
 
   /** Called when an appointment card is clicked */
   onAppointmentClick?: (appointment: Appointment) => void
@@ -99,7 +117,4 @@ export interface AppointmentsMainViewProps {
 
   /** Optional error message to display above the list */
   error?: string | null
-
-  /** Optional list of all selectable dates returned by the API */
-  availableDates?: string[]
 }
