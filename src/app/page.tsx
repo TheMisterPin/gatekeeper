@@ -235,12 +235,13 @@ const HomePage: React.FC = () => {
 
     setCheckInLoading(true);
     try {
-      const response = await fetch(`/api/appointments/${normalizedAppointmentId}/checkin`, {
+      const response = await fetch(`/api/appointments/checkin/${normalizedAppointmentId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          appointmentToConfirmId: normalizedAppointmentId,
           visitorId: appointmentToConfirm.visitorId ?? null,
           biometricConsent: biometricConsentChecked,
           badgePhotoAttached: Boolean(capturedImageUrl),
