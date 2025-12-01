@@ -43,7 +43,7 @@ const AppointmentsCsvControls: React.FC<AppointmentsCsvControlsProps> = ({
     if (!file) return;
 
     setImporting(true);
-    try:
+    try {
       const formData = new FormData();
       formData.append("file", file);
 
@@ -63,10 +63,10 @@ const AppointmentsCsvControls: React.FC<AppointmentsCsvControlsProps> = ({
       const payload = await res.json();
       const imported = payload?.imported ?? 0;
       const skipped = payload?.skipped ?? 0;
-      alert(
-        `Import completato. Importati: ${imported}. Saltati: ${skipped}.`
-      );
-      onImportComplete?.();
+        alert(
+          `Import completato. Importati: ${imported}. Saltati: ${skipped}.`
+        );
+        onImportComplete?.();
     } catch (err) {
       console.error("Import error", err);
       alert("Errore durante l'import da Excel/CSV.");

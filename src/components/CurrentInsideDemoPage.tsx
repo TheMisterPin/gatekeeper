@@ -2,10 +2,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import CurrentVisitorsView, {
-  CurrentVisit,
-} from "./components/CurrentVisitorsView";
-import AppointmentsCsvControls from "./components/AppointmentsCsvControls";
+import CurrentVisitorsView, { CurrentVisit } from "./CurrentVisitorsView";
+import AppointmentsCsvControls from "./AppointmentsCsvControls";
 
 interface CurrentVisitsResponse {
   visits: {
