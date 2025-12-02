@@ -114,7 +114,4 @@ export interface AppointmentsMainViewProps {
 
   /** Optional loading flag to show a spinner */
   loading?: boolean
-
-  /** Optional error message to display above the list */
-  error?: string | null
 }

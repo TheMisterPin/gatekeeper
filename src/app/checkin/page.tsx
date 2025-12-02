@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCamera } from "@/hooks/useCamera";
+import { useErrorDialog } from "@/hooks/ErrorDialogContext";
 import { Appointment } from "@/types";
 import { mapApiAppointmentRow } from "@/utils/mappers/appointment- mapper";
 
@@ -26,7 +27,8 @@ export default function CheckInPage() {
   const [badgeChoice, setBadgeChoice] = useState<"si" | "no" | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  const { reportError } = useErrorDialog();
 
   const { isCameraActive, capturedImageUrl, startCamera, stopCamera, capturePhoto } = useCamera();
 
@@ -35,7 +37,6 @@ export default function CheckInPage() {
 
     const loadAppointments = async () => {
       setLoading(true);
-      setError(null);
       try {
         const response = await fetch("/api/appointments?status=ALL", {
           method: "GET",
@@ -52,7 +53,10 @@ export default function CheckInPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : String(err));
+          reportError(err, {
+            source: "public-checkin/appointments",
+            title: "Impossibile recuperare gli appuntamenti",
+          });
         }
       } finally {
         if (!cancelled) {
@@ -66,7 +70,7 @@ export default function CheckInPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reportError]);
 
   const todaysAppointments = useMemo(
     () =>
@@ -137,7 +141,11 @@ export default function CheckInPage() {
   function handleCompleteWithBadge() {
     if (!selectedAppointment) return;
     if (!capturedImageUrl) {
-      window.alert("Scatta una foto prima di procedere.");
+      reportError("Scatta una foto prima di procedere.", {
+        severity: "warning",
+        source: "public-checkin/badge",
+        title: "Foto non disponibile",
+      });
       return;
     }
     updateAppointmentStatus(selectedAppointment.id, "CHECKED_IN");
@@ -193,9 +201,6 @@ export default function CheckInPage() {
         {hasAppointment === true && (
           <div className="space-y-6">
             {loading && <p className="text-sm text-gray-500">Caricamento appuntamenti…</p>}
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
             <div className="space-y-2">
               <label htmlFor="search" className="block text-sm font-medium text-gray-700">
                 Cerca il tuo nome

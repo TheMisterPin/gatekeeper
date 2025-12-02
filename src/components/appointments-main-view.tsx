@@ -17,16 +17,12 @@ export default function AppointmentsMainView({
   onEmployeeFilterChange,
   onAppointmentClick,
   loading = false,
-  error = null,
 }: AppointmentsMainViewProps) {
 
   return (
     <div className="flex h-full flex-col border-2 border-blue-500 rounded-md overflow-hidden bg-white">
       <div className="sticky top-0 z-10 space-y-4 border-b border-blue-200 bg-white/95 backdrop-blur p-4 shadow-sm">
         {loading && <div className="text-sm text-gray-600">Caricamento appuntamenti…</div>}
-        {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">Errore caricamento: {error}</div>
-        )}
         <SectionHeader title="Appuntamenti di oggi" />
 
 <ScheduleToolbar

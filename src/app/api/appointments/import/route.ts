@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
       visitorId: null,
       purpose: purpose || null,
       location: location || null,
-      status: "SCHEDULED",
+      status: "scheduled",
     };
 
     db.lastNumericId = nextNumericId;

@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useErrorDialog } from "./ErrorDialogContext";
 
 interface UseCameraResult {
   isCameraActive: boolean;
@@ -18,6 +19,7 @@ interface UseCameraResult {
  * For this app we keep the video element hidden and only use the captured data URL.
  */
 export function useCamera(): UseCameraResult {
+  const { reportError } = useErrorDialog();
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
 
@@ -52,7 +54,11 @@ export function useCamera(): UseCameraResult {
   const startCamera = useCallback(async () => {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        window.alert("La fotocamera non è supportata dal browser.");
+        reportError("La fotocamera non è supportata dal browser.", {
+          severity: "warning",
+          source: "camera/start",
+          title: "Fotocamera non disponibile",
+        });
         return;
       }
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -74,9 +80,12 @@ export function useCamera(): UseCameraResult {
       setCapturedImageUrl(null);
     } catch (err) {
       console.error("Unable to start camera", err);
-      window.alert("Impossibile accedere alla fotocamera.");
+      reportError(err, {
+        source: "camera/start",
+        title: "Impossibile accedere alla fotocamera",
+      });
     }
-  }, [attachStreamToVideo]);
+  }, [attachStreamToVideo, reportError]);
 
   const stopCamera = useCallback(() => {
     if (attachIntervalRef.current) {

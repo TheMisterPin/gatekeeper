@@ -39,7 +39,6 @@ interface ScheduleControllerValue {
   dateOptions: string[];
   groupedAppointments: AppointmentHostGroup[];
   appointmentsLoading: boolean;
-  appointmentsError: string | null;
   handleAppointmentClick: (appointment: Appointment) => void;
   handleCloseArrivalModal: () => void;
   selectedAppointment: Appointment | null;
@@ -72,7 +71,6 @@ function useScheduleControllerState(): ScheduleControllerValue {
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
 
@@ -114,7 +112,6 @@ function useScheduleControllerState(): ScheduleControllerValue {
 
     const fetchAppointments = async () => {
       setAppointmentsLoading(true);
-      setAppointmentsError(null);
       try {
         console.info("[appointments] fetching");
         const response = await fetch(`/api/appointments`, {
@@ -166,7 +163,6 @@ function useScheduleControllerState(): ScheduleControllerValue {
         console.error("Unable to load appointments", err);
         if (!cancelled) {
           const message = err instanceof Error ? err.message : String(err);
-          setAppointmentsError(message);
           reportError(err, {
             source: "appointments/fetch",
             title: "Impossibile caricare gli appuntamenti",
@@ -316,7 +312,11 @@ function useScheduleControllerState(): ScheduleControllerValue {
   const handleConfirmCheckIn = useCallback(async () => {
     if (!selectedAppointment) return;
     if (!mainConsentChecked) {
-      window.alert("È necessario il consenso al trattamento dati per procedere.");
+      reportError("È necessario il consenso al trattamento dati per procedere.", {
+        severity: "warning",
+        source: "appointments/checkin",
+        title: "Consenso obbligatorio",
+      });
       return;
     }
 
@@ -401,9 +401,12 @@ function useScheduleControllerState(): ScheduleControllerValue {
       });
     } catch (err) {
       console.error("Badge download failed", err);
-      window.alert("Impossibile generare il badge.");
+      reportError(err, {
+        source: "appointments/badge",
+        title: "Impossibile generare il badge",
+      });
     }
-  }, [selectedAppointment, capturedImageUrl, todayLabel]);
+  }, [selectedAppointment, capturedImageUrl, todayLabel, reportError]);
 
   return {
     isAuthenticated,
@@ -419,7 +422,6 @@ function useScheduleControllerState(): ScheduleControllerValue {
     dateOptions,
     groupedAppointments,
     appointmentsLoading,
-    appointmentsError,
     handleAppointmentClick,
     handleCloseArrivalModal,
     selectedAppointment,

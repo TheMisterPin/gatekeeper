@@ -21,7 +21,6 @@ export default function SchedulePage() {
 		dateOptions,
 		groupedAppointments,
 		appointmentsLoading,
-		appointmentsError,
 		handleAppointmentClick,
 		handleCloseArrivalModal,
 		selectedAppointment,
@@ -71,7 +70,6 @@ export default function SchedulePage() {
 				onDateFilterChange={setSelectedDateFilter}
 				onAppointmentClick={handleAppointmentClick}
 				loading={appointmentsLoading}
-				error={appointmentsError}
 			/>
 
 			<ArrivalCheckInModal
