@@ -44,10 +44,10 @@
 //     const file = event.target.files?.[0];
 //     if (!file) return;
 
-//     setImporting(true);
-//     try:
-//       const formData = new FormData();
-//       formData.append("file", file);
+    setImporting(true);
+    try:
+      const formData = new FormData();
+      formData.append("file", file);
 
 //       const res = await fetch("/api/appointments/import", {
 //         method: "POST",
