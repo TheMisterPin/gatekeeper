@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
@@ -27,7 +28,6 @@ export function useIsMobile(): boolean {
 
     // fallback for older browsers
     if (mql.addListener) {
-      // @ts-expect-error - older API
       mql.addListener(onChange)
       return () => {
         // @ts-ignore

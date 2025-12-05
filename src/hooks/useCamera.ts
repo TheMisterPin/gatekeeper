@@ -7,7 +7,7 @@ import { useErrorDialog } from "./ErrorDialogContext";
 interface UseCameraResult {
   isCameraActive: boolean;
   capturedImageUrl: string | null;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   startCamera: () => Promise<void>;
   stopCamera: () => void;
   capturePhoto: () => void;

@@ -1,3 +1,5 @@
+ 
+/* eslint-disable prefer-const */
 
 import { NextRequest, NextResponse } from "next/server";
 import { readJsonFile, writeJsonFile } from "@/lib/jsonDb";
