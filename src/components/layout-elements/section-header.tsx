@@ -9,10 +9,11 @@ interface SectionHeaderProps {
   headerActions?: Action[]
 }
 export default function SectionHeader({ title, headerActions }: SectionHeaderProps) {
+  const formattedTitle = title.toUpperCase()
   return (
 
         <div className='bg-header  rounded-t-md py-4 px-6  flex items-center justify-between'>
-        <h1 className="text-3xl font-semibold text-white">{title}</h1>
+        <h1 className="text-3xl font-semibold text-white/75 tracking-wide">{formattedTitle}</h1>
         {headerActions && (
           <div>
             {headerActions.map((action, index) => (

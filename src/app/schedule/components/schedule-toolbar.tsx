@@ -45,7 +45,7 @@ export default function ScheduleToolbar(props : ScheduleToolbarProps) {
               onChange={(e) => handleEmployeeFilterChange(e.target.value || null)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Tutti gli host</option>
+              <option value="">Tutti gli impiegati</option>
               {hostOptions.map((host) => (
                 <option key={host.id} value={host.id}>
                   {host.fullName}

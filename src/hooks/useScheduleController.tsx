@@ -31,6 +31,7 @@ interface ScheduleControllerValue {
   currentUserName?: string;
   handleLogout: () => void;
   searchTerm: string;
+  refresh: () => void;
   setSearchTerm: (value: string) => void;
   selectedEmployeeId: string | null;
   setSelectedEmployeeId: (value: string | null) => void;
@@ -108,14 +109,17 @@ function useScheduleControllerState(): ScheduleControllerValue {
 
   const todayLabel = useMemo(() => formatTodayLabel(), []);
 
-  useEffect(() => {
-    let cancelled = false;
 
-    const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async (dateFilter: string | null, cancelled: boolean) => {
       setAppointmentsLoading(true);
       try {
         console.info("[appointments] fetching");
-        const response = await fetch(`/api/appointments`, {
+        const params = new URLSearchParams();
+        if (dateFilter) params.append('date', dateFilter);
+        params.append('status', 'SCHEDULED');
+        const queryString = params.toString();
+        const url = queryString ? `/api/appointments?${queryString}` : '/api/appointments';
+        const response = await fetch(url, {
           method: "GET",
           cache: "no-store",
           credentials: "same-origin",
@@ -174,18 +178,20 @@ function useScheduleControllerState(): ScheduleControllerValue {
         if (!cancelled) {
           setAppointmentsLoading(false);
         }
-      }
-    };
-
-    fetchAppointments();
+    }
+  }, [reportError]);  useEffect(() => {
+    let cancelled = false;
+    fetchAppointments(selectedDateFilter, cancelled);
 
     return () => {
       cancelled = true;
     };
-  }, [reportError]);
+  }, [fetchAppointments, selectedDateFilter]);
 
   const todaysAppointments = useMemo(() => appointments, [appointments]);
-
+function refresh (){
+  fetchAppointments(null, false);
+}
   const filteredAppointments = useMemo(() => {
     let result = todaysAppointments;
 
@@ -198,12 +204,8 @@ function useScheduleControllerState(): ScheduleControllerValue {
       result = result.filter((a) => String(a.hostId) === selectedEmployeeId);
     }
 
-    if (selectedDateFilter) {
-      result = result.filter((a) => a.date === selectedDateFilter);
-    }
-
     return [...result];
-  }, [todaysAppointments, searchTerm, selectedEmployeeId, selectedDateFilter]);
+  }, [todaysAppointments, searchTerm, selectedEmployeeId]);
 
   const groupedAppointments = useMemo<AppointmentHostGroup[]>(() => {
     const groups = new Map<string, AppointmentHostGroup>();
@@ -428,6 +430,7 @@ function useScheduleControllerState(): ScheduleControllerValue {
     selectedAppointment,
     arrivalAppointmentInfo,
     mainConsentChecked,
+    refresh,
     setMainConsentChecked,
     biometricConsentChecked,
     setBiometricConsentChecked,

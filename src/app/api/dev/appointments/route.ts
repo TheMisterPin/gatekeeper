@@ -62,9 +62,22 @@ appointments.map(async (app) => {
 
 
 export async function POST() {
+
 await fixAppointmentNames();
 await fixCompanyNames();
 await fixVisitorNames();
 
 return Response.json({ success: true });
+}
+
+export async function DELETE() {
+  const allAppointments = await prisma.vIS_VisitAppointment.findMany();
+  const deletePromises = allAppointments.map(appointment =>
+    prisma.vIS_VisitAppointment.delete({
+      where: { Id: appointment.Id }
+    })
+  );
+  const results = await Promise.all(deletePromises);
+  const deleted = results.length;
+  return Response.json({ success: true, "deleted": deleted });
 }
