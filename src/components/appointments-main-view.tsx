@@ -6,6 +6,9 @@ import AppointmentCard from "@/app/schedule/components/appointment-card"
 import ScheduleToolbar from "@/app/schedule/components/schedule-toolbar"
 import GroupHeader from "@/app/schedule/components/group-header"
 import NoAppointments from "@/app/schedule/components/no-appointments"
+import { Download } from "lucide-react"
+import { exportAppointments } from "@/utils/export-appointments"
+
 
 export default function AppointmentsMainView({
   searchTerm,
@@ -16,14 +19,21 @@ export default function AppointmentsMainView({
   onSearchTermChange,
   onEmployeeFilterChange,
   onAppointmentClick,
-  loading = false,
+  loading = true,
 }: AppointmentsMainViewProps) {
 
+const exportActionButton = {
+    icon: Download,
+    tooltip: "Export appointments",
+    actionPerformed: () => exportAppointments(groupedAppointments.flatMap(group => group.appointments))
+}
+const titleActions = [exportActionButton]
+
   return (
-    <div className="flex h-full flex-col border-2 border-blue-500 rounded-md overflow-hidden bg-white">
-      <div className="sticky top-0 z-10 space-y-4 border-b border-blue-200 bg-white/95 backdrop-blur p-4 shadow-sm">
+    <div className="flex h-full flex-col border-2 border-transparent  rounded-md overflow-hidden">
+      <div className="sticky top-0 z-10 space-y-4 border-b  bg-gray-200/50 backdrop-blur p-4 shadow-sm">
         {loading && <div className="text-sm text-gray-600">Caricamento appuntamenti…</div>}
-        <SectionHeader title="Appuntamenti di oggi" />
+        <SectionHeader title="Appuntamenti di oggi" headerActions={titleActions} />
 
 <ScheduleToolbar
           searchTerm={searchTerm}
@@ -36,7 +46,7 @@ export default function AppointmentsMainView({
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent">
+      <div className="flex-1 overflow-y-auto scrollbar-hide ">
         {(!loading && groupedAppointments.length === 0) ? (
           <NoAppointments />
         ) : (

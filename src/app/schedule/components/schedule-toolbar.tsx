@@ -1,3 +1,4 @@
+import { parseDate } from '@/utils/date-utils';
 import { Search } from 'lucide-react'
 import React from 'react'
 interface ScheduleToolbarProps {
@@ -62,7 +63,7 @@ export default function ScheduleToolbar(props : ScheduleToolbarProps) {
               <option value="">Tutte le date</option>
               {dateOptions.map((d) => (
                 <option key={d} value={d}>
-                  {d}
+                 {parseDate(new Date(d))}
                 </option>
               ))}
             </select>
