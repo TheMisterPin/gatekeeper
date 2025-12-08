@@ -246,3 +246,25 @@ Error: Could not find a production build in the '.next' directory. Try building 
  ✓ Starting...
 [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
  ✓ Ready in 1128ms
+
+> presencelogger@0.1.0 start C:\Code\Progetti-BK\REACT\presencelogger
+> next start "-p" "2222"
+
+   ▲ Next.js 16.0.4
+   - Local:         http://localhost:2222
+   - Network:       http://192.168.1.16:2222
+
+ ✓ Starting...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Ready in 1100ms
+
+> presencelogger@0.1.0 start C:\Code\Progetti-BK\REACT\presencelogger
+> next start "-p" "2222"
+
+   ▲ Next.js 16.0.4
+   - Local:         http://localhost:2222
+   - Network:       http://172.20.80.1:2222
+
+ ✓ Starting...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Ready in 1119ms
