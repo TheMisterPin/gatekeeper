@@ -1,75 +1,107 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { AlertCircle, AlertTriangle, Info } from "lucide-react";
 import { useErrorDialog } from "../hooks/ErrorDialogContext";
 
-/**
- * Overlay a tutto schermo che legge ErrorDialogContext e visualizza l'errore corrente.
- */
+const SEVERITY_THEME = {
+  error: {
+    label: "Errore",
+    headerBg: "bg-red-600",
+    headerText: "text-white",
+    accent: "text-red-700",
+    icon: AlertCircle,
+  },
+  warning: {
+    label: "Attenzione",
+    headerBg: "bg-amber-500",
+    headerText: "text-slate-950",
+    accent: "text-amber-700",
+    icon: AlertTriangle,
+  },
+  info: {
+    label: "Informazione",
+    headerBg: "bg-sky-500",
+    headerText: "text-white",
+    accent: "text-sky-700",
+    icon: Info,
+  },
+} as const;
+
 const ErrorDialogPortal: React.FC = () => {
   const { isOpen, currentError, clearError } = useErrorDialog();
   const [showDetails, setShowDetails] = useState(false);
 
-  if (!isOpen || !currentError) return null;
+  const theme = useMemo(() => {
+    if (!currentError) return null;
+    return SEVERITY_THEME[currentError.severity] ?? SEVERITY_THEME.error;
+  }, [currentError]);
 
-  const severityColor =
-    currentError.severity === "error"
-      ? "border-red-500 text-red-900"
-      : currentError.severity === "warning"
-      ? "border-amber-500 text-amber-900"
-      : "border-sky-500 text-sky-900";
+  if (!isOpen || !currentError || !theme) return null;
+
+  const Icon = theme.icon;
+  const timestamp = new Date(currentError.timestamp).toLocaleString("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className={`mx-4 w-full max-w-lg rounded-lg border bg-white shadow-xl ${severityColor}`}>
-        <div className="border-b px-4 py-3 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="app-error-title"
+        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
+        <div className={`flex items-center justify-center gap-3 px-6 py-4 ${theme.headerBg} ${theme.headerText}`}>
+          <Icon className="h-5 w-5" aria-hidden />
+          <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+            {theme.label}
+          </p>
+          <Icon className="h-5 w-5" aria-hidden />
+        </div>
+
+        <div className="space-y-3 px-6 py-5 text-slate-900">
           <div>
-            <h2 className="text-sm font-semibold">
+            <h2 id="app-error-title" className="text-base font-semibold">
               {currentError.title}
             </h2>
-            <p className="text-xs text-slate-500">
-              {currentError.source
-                ? `${currentError.source} · ${new Date(
-                    currentError.timestamp
-                  ).toLocaleTimeString()}`
-                : new Date(currentError.timestamp).toLocaleTimeString()}
+            <p className="text-sm text-slate-500">
+              {currentError.source ? `${currentError.source} · ${timestamp}` : timestamp}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={clearError}
-            className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
-          >
-            Chiudi
-          </button>
-        </div>
-        <div className="px-4 py-3 text-sm text-slate-800">
-          <p className="mb-2 whitespace-pre-wrap">{currentError.message}</p>
+
+          <p className="rounded-md bg-slate-50 px-4 py-3 text-sm text-slate-800 whitespace-pre-line">
+            {currentError.message}
+          </p>
+
           {currentError.details && (
-            <div className="mt-2">
+            <div className="rounded-md border border-dashed border-slate-200 px-4 py-3">
               <button
                 type="button"
-                onClick={() => setShowDetails((v) => !v)}
-                className="text-xs text-slate-500 underline hover:text-slate-700"
+                onClick={() => setShowDetails((value) => !value)}
+                className={`text-xs font-semibold ${theme.accent}`}
               >
-                {showDetails ? "Nascondi dettagli" : "Mostra dettagli"}
+                {showDetails ? "Nascondi dettagli tecnici" : "Mostra dettagli tecnici"}
               </button>
               {showDetails && (
-                <pre className="mt-2 max-h-40 overflow-auto rounded bg-slate-50 p-2 text-[11px] text-slate-600">
+                <pre className="mt-2 max-h-48 overflow-auto text-xs text-slate-600">
                   {currentError.details}
                 </pre>
               )}
             </div>
           )}
         </div>
-        <div className="flex items-center justify-end gap-2 border-t bg-slate-50 px-4 py-2">
+
+        <div className="bg-slate-100 px-6 py-4">
           <button
             type="button"
             onClick={clearError}
-            className="rounded bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800"
+            className="w-full rounded-lg bg-slate-900 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
-            Ok
+            OK
           </button>
         </div>
       </div>

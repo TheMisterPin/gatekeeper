@@ -8,6 +8,7 @@ export async function confirmArrival(appointmentId: number) {
         where: { Id: appointmentId },
         data: {
             Status: CHECKED_IN_STATUS,
+            ArrivalTime: new Date(),
             UpdatedAt: new Date(),
         },
     })

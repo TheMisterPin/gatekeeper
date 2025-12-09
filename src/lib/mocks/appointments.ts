@@ -50,13 +50,13 @@ export async function generateMockAppointments(count: number) {
         // generate a random date within next 7 days
         const start = new Date();
         const end = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        const randomDate = getRandomDate(start, end);
+        
 
         const newAppointment: CreateAppointmentFormData = {
             hostId: host,
             visitorId: visitor,
-            startTime: randomDate,
-            endTime: new Date(randomDate.getTime() + 60 * 60 * 1000),
+            startTime: start,
+            endTime: end,
         };
         appointments.push(newAppointment);
     }

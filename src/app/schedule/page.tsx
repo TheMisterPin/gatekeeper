@@ -5,6 +5,7 @@ import AppointmentsMainView from "@/components/appointments-main-view"
 import ArrivalCheckInModal from "@/components/arrival-check-in-modal"
 import { HeaderLogo } from "@/components/layout-elements/header-logo"
 import { useScheduleController } from "@/hooks/useScheduleController"
+import { useRouter } from "next/navigation";
 
 export default function SchedulePage() {
 	const {
@@ -21,7 +22,6 @@ export default function SchedulePage() {
 		dateOptions,
 		groupedAppointments,
 		appointmentsLoading,
-		appointmentsError,
 		handleAppointmentClick,
 		handleCloseArrivalModal,
 		selectedAppointment,
@@ -41,9 +41,11 @@ export default function SchedulePage() {
 		todayLabel,
 		checkInLoading,
 	} = useScheduleController()
-
+const router = useRouter()
 	if (!isAuthenticated) {
-		return null
+return router.replace(isAuthenticated ? "/schedule" : "/login");
+		  
+		
 	}
 
 	return (
@@ -71,7 +73,6 @@ export default function SchedulePage() {
 				onDateFilterChange={setSelectedDateFilter}
 				onAppointmentClick={handleAppointmentClick}
 				loading={appointmentsLoading}
-				error={appointmentsError}
 			/>
 
 			<ArrivalCheckInModal

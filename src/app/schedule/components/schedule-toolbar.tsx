@@ -1,3 +1,4 @@
+import { parseDate } from '@/utils/date-utils';
 import { Search } from 'lucide-react'
 import React from 'react'
 interface ScheduleToolbarProps {
@@ -44,7 +45,7 @@ export default function ScheduleToolbar(props : ScheduleToolbarProps) {
               onChange={(e) => handleEmployeeFilterChange(e.target.value || null)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Tutti gli host</option>
+              <option value="">Tutti gli impiegati</option>
               {hostOptions.map((host) => (
                 <option key={host.id} value={host.id}>
                   {host.fullName}
@@ -62,7 +63,7 @@ export default function ScheduleToolbar(props : ScheduleToolbarProps) {
               <option value="">Tutte le date</option>
               {dateOptions.map((d) => (
                 <option key={d} value={d}>
-                  {d}
+                 {parseDate(new Date(d))}
                 </option>
               ))}
             </select>

@@ -1,3 +1,5 @@
+ 
+/* eslint-disable prefer-const */
 
 import { NextRequest, NextResponse } from "next/server";
 import { readJsonFile, writeJsonFile } from "@/lib/jsonDb";
@@ -138,7 +140,7 @@ export async function POST(req: NextRequest) {
       visitorId: null,
       purpose: purpose || null,
       location: location || null,
-      status: "SCHEDULED",
+      status: "scheduled",
     };
 
     db.lastNumericId = nextNumericId;

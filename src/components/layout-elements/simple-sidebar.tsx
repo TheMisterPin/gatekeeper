@@ -2,8 +2,10 @@
 
 
 import { generateMockAppointments } from "@/lib/mocks/appointments"
-import { Home, Inbox, Calendar, Search, Settings } from "lucide-react"
+import { Home, Inbox, Calendar, Search, Settings, Delete, Download } from "lucide-react"
 import { useEffect, useState } from "react"
+import { ConfirmModal } from "../modals/confirm-modal"
+import { ConfirmModalComponent } from "../modals/modal-trigger"
 
 const items = [
   { title: "Generate Appointments", icon: Home, onclick: () => postAppointments() },
@@ -44,6 +46,34 @@ function postAppointments() {
         }
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Error generating appointments', err);
+    }
+  })();
+}
+
+function deleteAppointments() {
+  (async () => {
+    try {
+   
+          const res = await fetch('/api/dev/appointments', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!res.ok) {
+            const body = await res.json().catch(() => null);
+            // eslint-disable-next-line no-console
+            console.error('POST /api/appointments failed', res.status, body);
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('Created appointment', await res.json());
+          
+      }
+      }
+     catch (err) {
       // eslint-disable-next-line no-console
       console.error('Error generating appointments', err);
     }
@@ -105,13 +135,15 @@ export default function SimpleSidebar({
         }
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={() => postAppointments()}>Generate Appointments</button>
+              <button className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+     onClick={() => postAppointments()}>Generate Appointments</button>
+      <button className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={() => deleteAppointments()}>Delete Appointments</button>
+      <ConfirmModalComponent triggerText="Apri" modalToOpen="confirm" icon={Download} message="DIO CAN"/>
         <nav className="flex flex-col gap-2">
           {items.map((it) => (
             <a
               key={it.title}
               href={it.href}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               <it.icon className="size-4" />
               <span>{it.title}</span>

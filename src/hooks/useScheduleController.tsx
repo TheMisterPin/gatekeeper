@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import {
@@ -30,6 +31,7 @@ interface ScheduleControllerValue {
   currentUserName?: string;
   handleLogout: () => void;
   searchTerm: string;
+  refresh: () => void;
   setSearchTerm: (value: string) => void;
   selectedEmployeeId: string | null;
   setSelectedEmployeeId: (value: string | null) => void;
@@ -39,7 +41,6 @@ interface ScheduleControllerValue {
   dateOptions: string[];
   groupedAppointments: AppointmentHostGroup[];
   appointmentsLoading: boolean;
-  appointmentsError: string | null;
   handleAppointmentClick: (appointment: Appointment) => void;
   handleCloseArrivalModal: () => void;
   selectedAppointment: Appointment | null;
@@ -72,7 +73,6 @@ function useScheduleControllerState(): ScheduleControllerValue {
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
 
@@ -109,15 +109,17 @@ function useScheduleControllerState(): ScheduleControllerValue {
 
   const todayLabel = useMemo(() => formatTodayLabel(), []);
 
-  useEffect(() => {
-    let cancelled = false;
 
-    const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async (dateFilter: string | null, cancelled: boolean) => {
       setAppointmentsLoading(true);
-      setAppointmentsError(null);
       try {
         console.info("[appointments] fetching");
-        const response = await fetch(`/api/appointments`, {
+        const params = new URLSearchParams();
+        if (dateFilter) params.append('date', dateFilter);
+        params.append('status', 'SCHEDULED');
+        const queryString = params.toString();
+        const url = queryString ? `/api/appointments?${queryString}` : '/api/appointments';
+        const response = await fetch(url, {
           method: "GET",
           cache: "no-store",
           credentials: "same-origin",
@@ -166,7 +168,6 @@ function useScheduleControllerState(): ScheduleControllerValue {
         console.error("Unable to load appointments", err);
         if (!cancelled) {
           const message = err instanceof Error ? err.message : String(err);
-          setAppointmentsError(message);
           reportError(err, {
             source: "appointments/fetch",
             title: "Impossibile caricare gli appuntamenti",
@@ -177,18 +178,20 @@ function useScheduleControllerState(): ScheduleControllerValue {
         if (!cancelled) {
           setAppointmentsLoading(false);
         }
-      }
-    };
-
-    fetchAppointments();
+    }
+  }, [reportError]);  useEffect(() => {
+    let cancelled = false;
+    fetchAppointments(selectedDateFilter, cancelled);
 
     return () => {
       cancelled = true;
     };
-  }, [reportError]);
+  }, [fetchAppointments, selectedDateFilter]);
 
   const todaysAppointments = useMemo(() => appointments, [appointments]);
-
+function refresh (){
+  fetchAppointments(null, false);
+}
   const filteredAppointments = useMemo(() => {
     let result = todaysAppointments;
 
@@ -201,12 +204,8 @@ function useScheduleControllerState(): ScheduleControllerValue {
       result = result.filter((a) => String(a.hostId) === selectedEmployeeId);
     }
 
-    if (selectedDateFilter) {
-      result = result.filter((a) => a.date === selectedDateFilter);
-    }
-
     return [...result];
-  }, [todaysAppointments, searchTerm, selectedEmployeeId, selectedDateFilter]);
+  }, [todaysAppointments, searchTerm, selectedEmployeeId]);
 
   const groupedAppointments = useMemo<AppointmentHostGroup[]>(() => {
     const groups = new Map<string, AppointmentHostGroup>();
@@ -316,7 +315,11 @@ function useScheduleControllerState(): ScheduleControllerValue {
   const handleConfirmCheckIn = useCallback(async () => {
     if (!selectedAppointment) return;
     if (!mainConsentChecked) {
-      window.alert("È necessario il consenso al trattamento dati per procedere.");
+      reportError("È necessario il consenso al trattamento dati per procedere.", {
+        severity: "warning",
+        source: "appointments/checkin",
+        title: "Consenso obbligatorio",
+      });
       return;
     }
 
@@ -401,9 +404,12 @@ function useScheduleControllerState(): ScheduleControllerValue {
       });
     } catch (err) {
       console.error("Badge download failed", err);
-      window.alert("Impossibile generare il badge.");
+      reportError(err, {
+        source: "appointments/badge",
+        title: "Impossibile generare il badge",
+      });
     }
-  }, [selectedAppointment, capturedImageUrl, todayLabel]);
+  }, [selectedAppointment, capturedImageUrl, todayLabel, reportError]);
 
   return {
     isAuthenticated,
@@ -419,12 +425,12 @@ function useScheduleControllerState(): ScheduleControllerValue {
     dateOptions,
     groupedAppointments,
     appointmentsLoading,
-    appointmentsError,
     handleAppointmentClick,
     handleCloseArrivalModal,
     selectedAppointment,
     arrivalAppointmentInfo,
     mainConsentChecked,
+    refresh,
     setMainConsentChecked,
     biometricConsentChecked,
     setBiometricConsentChecked,

@@ -6,43 +6,56 @@ import AppointmentCard from "@/app/schedule/components/appointment-card"
 import ScheduleToolbar from "@/app/schedule/components/schedule-toolbar"
 import GroupHeader from "@/app/schedule/components/group-header"
 import NoAppointments from "@/app/schedule/components/no-appointments"
+import { Download, RefreshCcw } from "lucide-react"
+import { exportAppointments } from "@/utils/export-appointments"
+import { useScheduleController } from "@/hooks/useScheduleController"
+
 
 export default function AppointmentsMainView({
   searchTerm,
+  selectedEmployeeId,
   selectedDateFilter,
   hostOptions,
   dateOptions,
   groupedAppointments,
   onSearchTermChange,
   onEmployeeFilterChange,
+  onDateFilterChange,
   onAppointmentClick,
-  loading = false,
-  error = null,
+  loading = true,
 }: AppointmentsMainViewProps) {
-  /**
-   * Rende la lista degli appuntamenti raggruppati con toolbar di filtro e messaggi di stato.
-   */
-  return (
-    <div className="flex h-full flex-col border-2 border-blue-500 rounded-md overflow-hidden bg-white">
-      <div className="sticky top-0 z-10 space-y-4 border-b border-blue-200 bg-white/95 backdrop-blur p-4 shadow-sm">
-        {loading && <div className="text-sm text-gray-600">Caricamento appuntamenti…</div>}
-        {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">Errore caricamento: {error}</div>
-        )}
-        <SectionHeader title="Appuntamenti di oggi" />
+const {refresh} = useScheduleController();
+const exportActionButton = {
+    icon: Download,
+    tooltip: "Export appointments",
+    actionPerformed: () => exportAppointments(groupedAppointments.flatMap(group => group.appointments))
+}
+const refreshActionButton = {
+    icon: RefreshCcw,
+    tooltip: "Refresh appointments",
+    actionPerformed: () => refresh()
+}
+const titleActions = [exportActionButton, refreshActionButton]
 
-<ScheduleToolbar
+  return (
+    <div className="flex h-full flex-col border-2 border-transparent  rounded-md overflow-hidden">
+      <div className="sticky top-0 z-10 space-y-4 border-b  bg-gray-200/50 backdrop-blur p-4 shadow-sm">
+        {loading && <div className="text-sm text-gray-600">Caricamento appuntamenti…</div>}
+        <SectionHeader title="Appuntamenti di oggi" headerActions={titleActions} />
+
+        <ScheduleToolbar
           searchTerm={searchTerm}
           selectedDateFilter={selectedDateFilter}
           hostOptions={hostOptions}
           dateOptions={dateOptions}
           onSearchTermChange={onSearchTermChange}
-          setSelectedDateFilter={() => {}}
+          setSelectedDateFilter={onDateFilterChange ?? (() => {})}
+          effectiveEmployeeFilter={selectedEmployeeId}
           handleEmployeeFilterChange={onEmployeeFilterChange ?? (() => {})}
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-transparent">
+      <div className="flex-1 overflow-y-auto scrollbar-hide ">
         {(!loading && groupedAppointments.length === 0) ? (
           <NoAppointments />
         ) : (

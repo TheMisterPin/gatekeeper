@@ -46,6 +46,8 @@ export interface Appointment {
   deviceId?: string | null
   /** VIS_VisitAppointment.CreatedAt */
   createdAt?: string
+  arrivalTime?: string | null
+  departureTime?: string | null
   /** VIS_VisitAppointment.UpdatedAt */
   updatedAt?: string
   custString1?: string | null
@@ -114,7 +116,4 @@ export interface AppointmentsMainViewProps {
 
   /** Optional loading flag to show a spinner */
   loading?: boolean
-
-  /** Optional error message to display above the list */
-  error?: string | null
 }

@@ -2,6 +2,7 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - core-js-pure
   - esbuild
+  - msw
   - prisma
   - sharp
   - unrs-resolver
