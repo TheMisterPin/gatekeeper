@@ -5,21 +5,24 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import ModalSelector from "./modal-selector"
-import { Icon } from "lucide-react"
+import { Icon, LucideIcon } from "lucide-react"
 interface Props {
   onConfirm?: () => void,
   triggerText: string
-  modalToOpen: string
+  modalToOpen: string,
+   icon? : LucideIcon;
+   message: string;
 }
-export function ConfirmModalComponent({ onConfirm, triggerText, modalToOpen }: Props) {
+export function ConfirmModalComponent({ onConfirm, triggerText, modalToOpen, icon, message }: Props) {
+  const IconComponent = icon;
     
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" >{triggerText}</Button>
+        <Button variant="outline" >{IconComponent && <IconComponent />} {triggerText}</Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
-    <ModalSelector modal={modalToOpen} onConfirm={onConfirm ?? (() => {console.log("No confirm action provided")})} />
+      <AlertDialogContent className="border-2 border-red-500 p-0">
+    <ModalSelector modal={modalToOpen} onConfirm={onConfirm ?? (() => {console.log("No confirm action provided")})}  message={message} />
       </AlertDialogContent>
     </AlertDialog>
   )

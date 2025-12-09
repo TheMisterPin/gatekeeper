@@ -2,7 +2,7 @@
 
 
 import { generateMockAppointments } from "@/lib/mocks/appointments"
-import { Home, Inbox, Calendar, Search, Settings } from "lucide-react"
+import { Home, Inbox, Calendar, Search, Settings, Delete, Download } from "lucide-react"
 import { useEffect, useState } from "react"
 import { ConfirmModal } from "../modals/confirm-modal"
 import { ConfirmModalComponent } from "../modals/modal-trigger"
@@ -135,7 +135,7 @@ useEffect(() => {
               <button className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
      onClick={() => postAppointments()}>Generate Appointments</button>
       <button className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={() => deleteAppointments()}>Delete Appointments</button>
-      <ConfirmModalComponent triggerText="Apri" modalToOpen="confirm" />
+      <ConfirmModalComponent triggerText="Apri" modalToOpen="confirm" icon={Download} message="DIO CAN"/>
         <nav className="flex flex-col gap-2">
           {items.map((it) => (
             <a

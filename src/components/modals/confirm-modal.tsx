@@ -6,17 +6,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { TriangleAlert } from "lucide-react"
 
-
-export function ConfirmModal({ onConfirm }: { onConfirm: () => void }) {
+  
+export function ConfirmModal({ onConfirm, message }: { onConfirm: () => void, message: string }) {
   return (
 
       <>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
+      
+        <AlertDialogHeader className="overflow-hidden rounded-t-lg">
+          <AlertDialogTitle className="bg-warning py-3"> 
+            <div className="w-1/2 flex justify-between items-center mx-auto text-red-200">
+            <TriangleAlert className="inline-block mr-2" />
+            ATTENZIONE
+            <TriangleAlert className="inline-block mr-2" />
+            </div>
+            </AlertDialogTitle>
+          <AlertDialogDescription className="px-6 py-4 text-center ">
+            {message}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

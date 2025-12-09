@@ -38,6 +38,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --background-gradient: linear-gradient(#e7e3e3, #cfcdcd);
+  --warining-gradient: linear-gradient(#e44d4d, #ce2828);
 	--topbannerColor: linear-gradient( #434757,  #68718b);
 	--bottombannerColor: linear-gradient( #68718b,  #434757);
 	--header-gradient: linear-gradient(#73bee0, #4880e9);
@@ -120,6 +121,7 @@
   --background-image-topbanner: var(--topbannerColor);
   --background-image-bottombanner: var(--bottombannerColor);
   --background-image-header: var(--header-gradient);
+  --background-image-warning: var(--warining-gradient);
   --background-image-background: var(--background-gradient);
 }
 
