@@ -3,8 +3,11 @@ import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
 
+/**
+ * Hook che rileva se la finestra ha larghezza inferiore al breakpoint mobile.
+ * Usa matchMedia per aggiornarsi ai resize e restituisce un booleano stabile lato client.
+ */
 export function useIsMobile(): boolean {
-  // initialize from window if available to avoid initial undefined/flicker
   const getInitial = () => {
     if (typeof window === "undefined") return false
     return window.innerWidth < MOBILE_BREAKPOINT

@@ -18,10 +18,7 @@ export interface CurrentVisitorsViewProps {
 }
 
 /**
- * Pure presentational component that shows who is currently inside
- * the factory, reusing the same "card" vibe as the appointments list.
- *
- * You feed it the data; it does no fetching on its own.
+ * Componente presentazionale che mostra chi è attualmente presente usando card simili alla lista appuntamenti.
  */
 const CurrentVisitorsView: React.FC<CurrentVisitorsViewProps> = ({
   visits,

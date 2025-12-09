@@ -1,6 +1,3 @@
-import { NavItem } from "@/types/components/nav-item";
-
-
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
 
 import {
@@ -14,7 +11,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-// Menu items.
 const items = [
   {
     title: "Home",
@@ -43,6 +39,9 @@ const items = [
   },
 ]
 
+/**
+ * Sidebar di esempio che mostra voci statiche con icone Lucide.
+ */
 export function AppSidebar() {
   return (
     <Sidebar>

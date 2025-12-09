@@ -8,6 +8,9 @@ interface SectionHeaderProps {
   title: string
   headerActions?: Action[]
 }
+/**
+ * Titolo di sezione con eventuali azioni icona a destra.
+ */
 export default function SectionHeader({ title, headerActions }: SectionHeaderProps) {
   const formattedTitle = title.toUpperCase()
   return (
