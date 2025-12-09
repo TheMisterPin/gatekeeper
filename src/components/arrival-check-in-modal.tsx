@@ -3,6 +3,9 @@
 
 import type { ArrivalCheckInModalProps } from "@/types/arrival"
 
+/**
+ * Modale interattiva per gestire check-in visitatore con raccolta consensi, foto e generazione badge.
+ */
 export default function ArrivalCheckInModal({
   open,
   onClose,

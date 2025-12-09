@@ -12,8 +12,11 @@ const items = [
   { title: "Search", icon: Search, href: "#" },
   { title: "Settings", icon: Settings, href: "#" },
 ]
+
+/**
+ * Invoca la generazione di appuntamenti fittizi e li invia all'API.
+ */
 function postAppointments() {
-  // Function to post generated appointments
   (async () => {
     try {
       const appointments = await generateMockAppointments(10);
@@ -53,25 +56,25 @@ export default function SimpleSidebar({
   open?: boolean
   onClose?: () => void
 }) {
+  /**
+   * Gestisce il rendering della sidebar animata e chiama onClose quando si clicca sull'overlay.
+   */
   const [rendered, setRendered] = useState(open)
   const [active, setActive] = useState(open)
 
-useEffect(() => {
+  useEffect(() => {
     if (open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setRendered(true)
-      // allow DOM to mount before enabling active class for transition
       requestAnimationFrame(() => setActive(true))
       return
     }
 
-    // start closing animation
     setActive(false)
     const t = window.setTimeout(() => setRendered(false), 400)
     return () => window.clearTimeout(t)
   }, [open])
 
-  // prevent body scrolling while the sidebar is rendered (including during closing animation)
   useEffect(() => {
     if (!rendered) return
     const prev = document.body.style.overflow

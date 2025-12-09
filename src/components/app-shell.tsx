@@ -14,15 +14,18 @@ export interface AppShellProps {
   children?: React.ReactNode
 }
 
+/**
+ * Struttura principale autenticata che unisce intestazione, sidebar e contenuto.
+ * Gestisce l'apertura della barra laterale e mantiene spazio per header e footer fissi.
+ */
 export default function AppShell({
   currentUserName,
   onLogout,
   logo,
   children,
 }: AppShellProps) {
-  // Authenticated - show full app layout
-  const headerHeight = 64 // px
-  const footerHeight = 56 // px
+  const headerHeight = 64
+  const footerHeight = 56
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -37,16 +40,14 @@ export default function AppShell({
     <div className="min-h-screen flex flex-col w-full">
       <AppHeaderComponent logo={logo} onToggleSidebar={toggleSidebar} />
       <div
-        className={`flex relative ${sidebarOpen ? 'overflow-hidden' : ''}`}
+        className={`flex relative ${sidebarOpen ? "overflow-hidden" : ""}`}
         style={{
           marginTop: `${headerHeight}px`,
           marginBottom: `${footerHeight}px`,
           height: `calc(100vh - ${headerHeight}px - ${footerHeight}px)`,
         }}
       >
-        {/* Main content (left side) */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-6">{children}</main>
-        {/* Navigation sidebar (right side) */}
         <SimpleSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </div>
 

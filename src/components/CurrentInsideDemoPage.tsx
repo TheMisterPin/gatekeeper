@@ -2,10 +2,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import CurrentVisitorsView, {
-  CurrentVisit,
-} from "./components/CurrentVisitorsView";
-import AppointmentsCsvControls from "./components/AppointmentsCsvControls";
+import CurrentVisitorsView, { CurrentVisit } from "./CurrentVisitorsView";
+import AppointmentsCsvControls from "./AppointmentsCsvControls";
 
 interface CurrentVisitsResponse {
   visits: {
@@ -20,12 +18,7 @@ interface CurrentVisitsResponse {
 }
 
 /**
- * Demo page that:
- * - fetches /api/visits/current
- * - shows them using CurrentVisitorsView
- * - exposes the Excel/CSV export/import controls for appointments
- *
- * In a real app you'd embed these pieces inside your main dashboard.
+ * Pagina demo che carica le visite correnti, le mostra in elenco e offre controlli CSV sugli appuntamenti.
  */
 const CurrentInsideDemoPage: React.FC = () => {
   const [visits, setVisits] = useState<CurrentVisit[]>([]);

@@ -5,9 +5,7 @@ import React, { useState } from "react";
 import { useErrorDialog } from "../hooks/ErrorDialogContext";
 
 /**
- * Very simple full-screen overlay that reads from ErrorDialogContext
- * and shows the current error. Purely presentational; replace with
- * your v0-generated dialog later if you want it prettier.
+ * Overlay a tutto schermo che legge ErrorDialogContext e visualizza l'errore corrente.
  */
 const ErrorDialogPortal: React.FC = () => {
   const { isOpen, currentError, clearError } = useErrorDialog();

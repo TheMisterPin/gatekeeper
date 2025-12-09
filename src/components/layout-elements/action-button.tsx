@@ -18,6 +18,9 @@ interface UniversalButtonProps {
   className?: string
 }
 
+/**
+ * Pulsante riutilizzabile che associa azioni e icone standard con tooltip contestuali.
+ */
 export function UniversalButton({
   type,
   action,
@@ -29,13 +32,18 @@ export function UniversalButton({
   size = "default",
   className = "",
 }: UniversalButtonProps) {
-  // Get the icon component from Lucide
   const IconComponent = (LucideIcons as any)[icon]
 
+  /**
+   * Restituisce l'etichetta leggibile a partire dall'identificativo dell'azione.
+   */
   const getActionLabel = (action: ButtonAction): string => {
     return action.charAt(0).toUpperCase() + action.slice(1).replace("_", " ")
   }
 
+  /**
+   * Seleziona la variante visiva in base al tipo di azione richiesta.
+   */
   const getVariantForAction = (action: ButtonAction) => {
     switch (action) {
       case ButtonAction.DELETE:

@@ -11,13 +11,8 @@ export interface AppointmentsCsvControlsProps {
 }
 
 /**
- * Small toolbar component that exposes:
- * - "Esporta Excel" (actually CSV compatible with Excel)
- * - "Importa Excel" (CSV upload)
- *
- * It talks to:
- * - GET /api/appointments/export?date=YYYY-MM-DD
- * - POST /api/appointments/import (multipart/form-data, field "file")
+ * Barra di controllo per esportare e importare appuntamenti in formato CSV.
+ * Comunica con le route API di export e import e notifica il chiamante al termine dell'import.
  */
 const AppointmentsCsvControls: React.FC<AppointmentsCsvControlsProps> = ({
   date,
@@ -26,16 +21,24 @@ const AppointmentsCsvControls: React.FC<AppointmentsCsvControlsProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [importing, setImporting] = useState(false);
 
+  /**
+   * Avvia il download dei dati filtrati per data tramite la route di export.
+   */
   const handleExport = () => {
     const url = `/api/appointments/export?date=${encodeURIComponent(date)}`;
-    // simplest: navigate to URL and let browser download
     window.location.href = url;
   };
 
+  /**
+   * Apre il selettore di file nascosto per permettere l'import.
+   */
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
 
+  /**
+   * Esegue l'upload del file CSV scelto, mostrando eventuali errori e ripulendo lo stato.
+   */
   const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async (
     event
   ) => {
@@ -43,7 +46,7 @@ const AppointmentsCsvControls: React.FC<AppointmentsCsvControlsProps> = ({
     if (!file) return;
 
     setImporting(true);
-    try:
+    try {
       const formData = new FormData();
       formData.append("file", file);
 
@@ -63,10 +66,10 @@ const AppointmentsCsvControls: React.FC<AppointmentsCsvControlsProps> = ({
       const payload = await res.json();
       const imported = payload?.imported ?? 0;
       const skipped = payload?.skipped ?? 0;
-      alert(
-        `Import completato. Importati: ${imported}. Saltati: ${skipped}.`
-      );
-      onImportComplete?.();
+        alert(
+          `Import completato. Importati: ${imported}. Saltati: ${skipped}.`
+        );
+        onImportComplete?.();
     } catch (err) {
       console.error("Import error", err);
       alert("Errore durante l'import da Excel/CSV.");

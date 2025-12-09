@@ -4,6 +4,9 @@ interface SectionHeaderProps {
   title: string
   headerActions?: Action[]
 }
+/**
+ * Titolo di sezione con eventuali azioni icona a destra.
+ */
 export default function SectionHeader({ title, headerActions }: SectionHeaderProps) {
   return (
         <div className='bg-header  rounded-t-md py-4 px-6'>

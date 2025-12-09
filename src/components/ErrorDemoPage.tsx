@@ -2,9 +2,12 @@
 "use client";
 
 import React from "react";
-import { ErrorDialogProvider, useErrorDialog } from "../context/ErrorDialogContext";
-import ErrorDialogPortal from "../components/ErrorDialogPortal";
+import { ErrorDialogProvider, useErrorDialog } from "@/hooks/ErrorDialogContext";
+import ErrorDialogPortal from "./ErrorDialogPortal";
 
+/**
+ * Pagina dimostrativa che produce errori di rete, logici e messaggi personalizzati per testare il portale errori.
+ */
 const ErrorDemoInner: React.FC = () => {
   const { reportError } = useErrorDialog();
 

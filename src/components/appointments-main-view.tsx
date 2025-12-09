@@ -19,7 +19,9 @@ export default function AppointmentsMainView({
   loading = false,
   error = null,
 }: AppointmentsMainViewProps) {
-
+  /**
+   * Rende la lista degli appuntamenti raggruppati con toolbar di filtro e messaggi di stato.
+   */
   return (
     <div className="flex h-full flex-col border-2 border-blue-500 rounded-md overflow-hidden bg-white">
       <div className="sticky top-0 z-10 space-y-4 border-b border-blue-200 bg-white/95 backdrop-blur p-4 shadow-sm">

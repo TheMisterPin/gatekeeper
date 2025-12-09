@@ -1,5 +1,4 @@
 "use client"
-"use client"
 
 import React from "react"
 import { Button } from "@/components/ui/button"
@@ -10,6 +9,10 @@ interface AppHeaderProps {
   onToggleSidebar?: () => void
 }
 
+/**
+ * Barra di intestazione principale con logo e controllo per aprire la sidebar.
+ * Espone un pulsante opzionale per la navigazione mobile e mostra l'elemento del logo passato dal layout.
+ */
 export function AppHeaderComponent({
   logo,
   onToggleSidebar,
