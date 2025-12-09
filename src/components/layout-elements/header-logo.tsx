@@ -1,5 +1,8 @@
 import Image from "next/image";
 
+/**
+ * Mostra il logo aziendale composto da immagine ottimizzata e label testuale.
+ */
 export function HeaderLogo() {
         return (
                 <div className="flex items-center">

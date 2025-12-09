@@ -1,23 +1,23 @@
-import React from 'react'
+import React from "react"
+
 interface AppFooterProps {
   currentUserName?: string
   onLogout?: () => void
   footerHeight: number
 }
 
-export default function AppFooter(
-props:  AppFooterProps) {
-    const { currentUserName, onLogout, footerHeight } = props;
+/**
+ * Footer dell'app con altezza controllata e azione di logout opzionale.
+ * Mostra il nome dell'utente corrente quando disponibile.
+ */
+export default function AppFooter({ currentUserName, onLogout, footerHeight }: AppFooterProps) {
   return (
-         <footer
-        className="fixed bottom-0 left-0 right-0 bg-bottombanner border-t border-gray-200 flex items-center justify-between px-6"
-        style={{ height: `${footerHeight}px` }}
-      >
-
+    <footer
+      className="fixed bottom-0 left-0 right-0 bg-bottombanner border-t border-gray-200 flex items-center justify-between px-6"
+      style={{ height: `${footerHeight}px` }}
+    >
       <div className="flex items-center gap-4">
-        {currentUserName && (
-          <span className="text-sm text-gray-200">{currentUserName}</span>
-        )}
+        {currentUserName && <span className="text-sm text-gray-200">{currentUserName}</span>}
         {onLogout && (
           <button
             type="button"
@@ -28,6 +28,6 @@ props:  AppFooterProps) {
           </button>
         )}
       </div>
-      </footer>
+    </footer>
   )
 }
